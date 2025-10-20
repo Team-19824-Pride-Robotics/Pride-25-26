@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
@@ -13,20 +14,51 @@ public class ballKickers {
 
     // Dashboard-tunable positions
     public static double downPosition = 0.15; //Not set
-    public static double upPosition  = 0; //Not set
+    public static double upPosition = 0; //Not set
 
     private final ServoImplEx leftKicker;
     private final ServoImplEx rightKicker;
-    private final AnalogInput leftKickerEncoder;
-    private final AnalogInput rightKickerEncoder;
+    private final AnalogInput leftKickerE;
+    private final AnalogInput rightKickerE;
 
-    private double desiredPosition;
+    private double desiredLeftPosition;
+    private double desiredRightPosition;
 
     public ballKickers(HardwareMap hardwareMap) {
-        this.leftKicker  = hardwareMap.get(Servo.class, "flap");
-        this.rightKicker  = hardwareMap.get(Servo.class, "flap");
-        this.leftKickerEncoder  = hardwareMap.get(Servo.class, "flap");
-        this.rightKickerEncoder  = hardwareMap.get(Servo.class, "flap");
-
+        leftKicker = hardwareMap.get(ServoImplEx.class, "lK");
+        rightKicker = hardwareMap.get(ServoImplEx.class, "rK");
+        leftKickerE = hardwareMap.get(AnalogInput.class, "lKE");
+        rightKickerE = hardwareMap.get(AnalogInput.class, "rKE");
+        leftKicker.setPwmRange(new PwmControl.PwmRange(505, 2495));
+        rightKicker.setPwmRange(new PwmControl.PwmRange(505, 2495));
     }
+    public void kickLeft(){
+        desiredLeftPosition=upPosition;
+    }
+    public void kickRight(){
+        desiredRightPosition=upPosition;
+    }
+    public void retractLeft(){
+        desiredLeftPosition=downPosition;
+    }
+    public void retractRight(){
+        desiredRightPosition=downPosition;
+    }
+    public double getLeftPos(){
+        return leftKickerE.getVoltage() / 3.3 * 360;
+    }
+    public double getRightPos(){
+        return rightKickerE.getVoltage() / 3.3 * 360;
+    }
+    public double getRightDesiredPos(){
+        return rightKicker.getPosition();
+    }
+    public double getLeftDesiredPos(){
+        return leftKicker.getPosition();
+    }
+    public void update(){
+        leftKicker.setPosition(desiredLeftPosition);
+        rightKicker.setPosition(desiredRightPosition);
+    }
+}
 
