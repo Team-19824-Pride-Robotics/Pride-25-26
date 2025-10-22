@@ -29,18 +29,18 @@ public class limelight {
     public int scanAuto(){
         //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
         limelight.pipelineSwitch(0);
-        while (result.getPipelineIndex()!=0) {
-        }
-        else if(result != null && result.getPipelineIndex()==1) {
-            pattern="Purple Green Purple";
-        }
-        else if(result != null && result.getPipelineIndex()==2) {
-            pattern="Purple Purple Green";
-        }
-    }
-
-
-    public void update(double launchPower) {
-        intake.setPower(intakingPower);
-    }
+//        while (result.getPipelineIndex()!=0) {
+//        }
+//        else if(result != null && result.getPipelineIndex()==1) {
+//            pattern="Purple Green Purple";
+//        }
+//        else if(result != null && result.getPipelineIndex()==2) {
+//            pattern="Purple Purple Green";
+//        }
+//    }
+//
+//
+//    public void update(double launchPower) {
+//        intake.setPower(intakingPower);
+//    }
 }
