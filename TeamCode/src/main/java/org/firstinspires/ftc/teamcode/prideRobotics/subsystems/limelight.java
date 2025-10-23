@@ -26,21 +26,34 @@ public class limelight {
     public void setPipeline(int pipeline){
         limelight.pipelineSwitch(pipeline);
     }
-    public int scanAuto(){
+    public int scanAuto() {
         //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
-        limelight.pipelineSwitch(0);
-//        while (result.getPipelineIndex()!=0) {
-//        }
-//        else if(result != null && result.getPipelineIndex()==1) {
-//            pattern="Purple Green Purple";
-//        }
-//        else if(result != null && result.getPipelineIndex()==2) {
-//            pattern="Purple Purple Green";
-//        }
-//    }
-//
-//
-//    public void update(double launchPower) {
-//        intake.setPower(intakingPower);
-//    }
+        int pattern = -1;
+        result = limelight.getLatestResult();
+        for (int i = 0; i < 3; i++) {
+            limelight.pipelineSwitch(i);
+            while (result.getPipelineIndex() != i) {
+                result = limelight.getLatestResult();
+                if (result != null && result.getPipelineIndex() == 0) {
+                    pattern = i;
+                }
+            }
+        }
+        return pattern;
+    }
+    public double getDistance(){
+        if(result != null){
+           return result.getTa(); //todo: calculate distance from Ta
+        } else{
+            return -1;
+        }
+    }
+    public double getAngle(){
+        if(result != null){
+            return result.getTxNC();
+        } else{
+            return -1;
+        }
+    }
+
 }
