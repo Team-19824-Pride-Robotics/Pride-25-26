@@ -2,15 +2,10 @@ package org.firstinspires.ftc.teamcode.prideRobotics;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.intake;
@@ -19,11 +14,9 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
 @TeleOp
 @Configurable
-public class blueTeleop extends LinearOpMode {
+public class redTeleop extends LinearOpMode {
 //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -33,12 +26,14 @@ public class blueTeleop extends LinearOpMode {
 //logic variable declarations
     private boolean launchLeft=false;
     private boolean launchRight=false;
+    private double launchVel;
 
     //flywheel setup
     private static double kP=0;
     private static double kI=0;
     private static double kD=0;
     private static double kF=0;
+    private static int T=60;
     PIDFController pidf = new PIDFController(kP, kI, kD, kF);
     InterpLUT lut = new InterpLUT();
 
@@ -73,6 +68,7 @@ public class blueTeleop extends LinearOpMode {
 
         //init mechs
         limelight.init();
+        limelight.setPipeline(3);
         flywheel.init();
         ballKickers.retractRight();
         ballKickers.retractLeft();
@@ -115,26 +111,42 @@ public class blueTeleop extends LinearOpMode {
 
             //power calculations
             if(limelight.getDistance()==-1){
-                pidf.setSetPoint(1000); //Todo: Set to a low enough power to maintain stable voltage. Current val is a placeholder
-                flywheel.update(pidf.calculate());
+                launchVel=1001; //Todo: Set to a low enough power to maintain stable voltage. Current val is a placeholder
             }else{
-                pidf.setSetPoint(lut.get(limelight.getDistance()));
-                flywheel.update(pidf.calculate());
+                launchVel=lut.get(limelight.getDistance());
+            }
+            pidf.setSetPoint(launchVel);
+
+            //ball kicking
+            if(gamepad2.right_bumper && launchVel<flywheel.getVelocity()+T && launchVel>flywheel.getVelocity()-T){
+                ballKickers.kickRight();
+            }
+            if(gamepad2.left_bumper && launchVel<flywheel.getVelocity()+T && launchVel>flywheel.getVelocity()-T){
+                ballKickers.kickLeft();
             }
 
-            if(gamepad2.right_bumper){
-                launchRight=true;
+            //Channeler testing
+
+            if(gamepad2.x){
+                transferChanneler.coverLeft();
             }
-            if(gamepad2.left_bumper){
-                launchLeft=true;
+            if(gamepad2.a){
+                transferChanneler.center();
+            }
+            if(gamepad2.b){
+                transferChanneler.coverRight();
             }
 
+            //update mechs
+            flywheel.update(pidf.calculate());
+            ballKickers.update();
+            intake.update();
+            transferChanneler.update();
 
-
+            telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
-            telemetry.addData("Distance From Goal: ", distanceFromGoal);
-            telemetry.addData("Angle From Goal", angleFromGoal);
+            telemetry.addData("Distance From Goal: ", limelight.getDistance());
             telemetry.update();
 
         }

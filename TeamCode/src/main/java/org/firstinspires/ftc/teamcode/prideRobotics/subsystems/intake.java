@@ -28,7 +28,7 @@ public class intake {
     }
 
 
-    public void update(double launchPower) {
+    public void update() {
         intake.setPower(intakingPower);
     }
 }

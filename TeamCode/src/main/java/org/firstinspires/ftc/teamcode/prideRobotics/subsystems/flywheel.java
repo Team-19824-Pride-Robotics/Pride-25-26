@@ -44,4 +44,6 @@ public class flywheel {
         flywheelB.setVelocity(launchPower);
         flywheelB.setVelocity(launchPower);
     }
+
+
 }
