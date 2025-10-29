@@ -1,7 +1,8 @@
-package org.firstinspires.ftc.teamcode.Subsystems;
+package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
 
 import com.arcrobotics.ftclib.controller.PDController;
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,7 +14,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class limelight {
 
     private final Limelight3A limelight;
-
+    private LLResult result;
     public double intakingPower = 0;
 
     public limelight(HardwareMap hardwareMap) {
@@ -27,6 +28,7 @@ public class limelight {
         limelight.pipelineSwitch(pipeline);
     }
     public int scanAuto() {
+
         //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
         int pattern = -1;
         result = limelight.getLatestResult();

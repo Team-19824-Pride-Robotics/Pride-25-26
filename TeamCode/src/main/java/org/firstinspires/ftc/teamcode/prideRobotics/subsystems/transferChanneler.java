@@ -13,8 +13,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class transferChanneler {
 
     // Dashboard-tunable positions
-    public static double leftPosition = 0.15; //Not set
-    public static double centerPosition = 0; //Not set
+    public static double leftPosition = 0.7; //Not set
+    public static double centerPosition = 0.3; //Not set
     public static double rightPosition = 0; //Not set
     private final ServoImplEx channeler;
 
