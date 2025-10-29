@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
+package org.firstinspires.ftc.teamcode.Subsystems;
 
 import com.arcrobotics.ftclib.controller.PDController;
 import com.bylazar.configurables.annotations.Configurable;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,7 +13,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class limelight {
 
     private final Limelight3A limelight;
-    LLResult result;
 
     public double intakingPower = 0;
 
