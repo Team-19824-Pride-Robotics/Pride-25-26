@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
 
 import com.arcrobotics.ftclib.controller.PDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -15,8 +16,11 @@ public class flywheel {
     private final DcMotorEx flywheelB;
 
     public double flywheelVelocity = 0;
-
-
+    private static double kP=0;
+    private static double kI=0;
+    private static double kD=0;
+    private static double kF=0;
+    PIDFController pidf = new PIDFController(kP, kI, kD, kF);
 
     public flywheel(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");

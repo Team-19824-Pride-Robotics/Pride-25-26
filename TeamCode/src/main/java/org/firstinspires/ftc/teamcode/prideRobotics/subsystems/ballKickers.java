@@ -35,16 +35,16 @@ public class ballKickers {
         rightKicker.setPwmRange(new PwmControl.PwmRange(505, 2495));
     }
     public void kickLeft(){
-        desiredLeftPosition=upPosition;
+        desiredLeftPosition=upLeftPosition;
     }
     public void kickRight(){
-        desiredRightPosition=upPosition;
+        desiredRightPosition=upRightPosition;
     }
     public void retractLeft(){
-        desiredLeftPosition=downPosition;
+        desiredLeftPosition=downLeftPosition;
     }
     public void retractRight(){
-        desiredRightPosition=downPosition;
+        desiredRightPosition=downRightPosition;
     }
     public double getLeftPos(){
         return leftKickerE.getVoltage() / 3.3 * 360;
