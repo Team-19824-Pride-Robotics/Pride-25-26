@@ -40,8 +40,8 @@ public class limelightDistanceThingy extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-limelight.init();
-limelight.setPipeline(3);
+        limelight.init();
+        limelight.setPipeline(3);
 
 
 

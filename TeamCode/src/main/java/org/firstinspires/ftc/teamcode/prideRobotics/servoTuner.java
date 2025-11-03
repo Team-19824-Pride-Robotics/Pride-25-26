@@ -29,7 +29,7 @@ public class servoTuner extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         servo = hardwareMap.get(Servo.class, "servo");
-        ;
+
 
 
         waitForStart();
