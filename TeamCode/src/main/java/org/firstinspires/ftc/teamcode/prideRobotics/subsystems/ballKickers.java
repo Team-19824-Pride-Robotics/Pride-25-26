@@ -13,10 +13,10 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class ballKickers {
 
     // Dashboard-tunable positions
-    public static double downLeftPosition = 0.4;
-    public static double upLeftPosition = 1;
-    public static double downRightPosition = 0.4;
-    public static double upRightPosition = 1;
+    public static double downLeftPosition = 1;
+    public static double upLeftPosition = 0.75;
+    public static double downRightPosition = 0.9;
+    public static double upRightPosition = 0.45;
 
     private final ServoImplEx leftKicker;
     private final ServoImplEx rightKicker;

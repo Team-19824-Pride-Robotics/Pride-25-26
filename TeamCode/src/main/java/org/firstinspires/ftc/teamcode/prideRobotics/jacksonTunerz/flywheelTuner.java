@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.prideRobotics.jacksonTunerz;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -24,7 +25,7 @@ public class flywheelTuner extends LinearOpMode {
 
 
         flywheel = new flywheel(hardwareMap);
-
+        TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         waitForStart();
 
         if (isStopRequested()) return;
@@ -33,11 +34,18 @@ public class flywheelTuner extends LinearOpMode {
             if(gamepad1.a){
                 launchPower=tempVal;
             }
-            flywheel.update(launchPower);
-
+            if(gamepad1.b){
+                flywheel.setPower(1);
+            }
+            if(!gamepad1.b) {
+                flywheel.update(launchPower);
+            }
             telemetry.addData("Set Velocity:", launchPower);
             telemetry.addData("Velocity: ", flywheel.getVelocity());
+            panelsTelemetry.addData("Set Velocity:", launchPower);
+            panelsTelemetry.addData("Velocity: ", flywheel.getVelocity());
             telemetry.update();
+            panelsTelemetry.update();
 
         }
     }

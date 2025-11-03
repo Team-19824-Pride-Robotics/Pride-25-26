@@ -16,10 +16,10 @@ public class flywheel {
     private final DcMotorEx flywheelB;
 
     public double flywheelVelocity = 0;
-    private static double kP=0;
+    private static double kP=0.005;
     private static double kI=0;
-    private static double kD=0;
-    private static double kF=0;
+    private static double kD=0.00001;
+    private static double kF=0.00037037037;
     PIDFController pidf = new PIDFController(kP, kI, kD, kF);
 
     public flywheel(HardwareMap hardwareMap) {
@@ -44,9 +44,15 @@ public class flywheel {
     }
 
     public void update(double launchPower) {
-        flywheelVelocity=flywheelB.getVelocity();
-        flywheelB.setVelocity(launchPower);
-        flywheelB.setVelocity(launchPower);
+        flywheelVelocity = flywheelB.getVelocity();
+        if (flywheelVelocity >= launchPower) {
+            flywheel.setPower(pidf.calculate(flywheel.getVelocity(), launchPower));
+            flywheelB.setPower(pidf.calculate(flywheelB.getVelocity(), launchPower));
+        }
+    }
+    public void setPower(double power){
+        flywheel.setPower(power);
+        flywheelB.setPower(power);
     }
 
 

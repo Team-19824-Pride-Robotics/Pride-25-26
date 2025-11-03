@@ -21,15 +21,18 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler
 public class servoTuner extends LinearOpMode {
     //mech subsystem declarations
     private Servo servo;
+    private DcMotor flywheel;
+    private DcMotor flywheelB;
     //logic variable declarations
-    private static double down=0;
-    private static double up=1;
+    private static double down = 0;
+    private static double up = 1;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
         servo = hardwareMap.get(Servo.class, "servo");
-
+        flywheel = hardwareMap.get(DcMotor.class, "flywheel");
+        flywheelB = hardwareMap.get(DcMotor.class, "flywheelB");
 
 
         waitForStart();
@@ -43,7 +46,19 @@ public class servoTuner extends LinearOpMode {
             if (gamepad1.b) {
                 servo.setPosition(up);
             }
+            if (gamepad1.right_bumper) {
+                flywheel.setPower(1);
+                flywheelB.setPower(1);
+            }
+            if (gamepad1.left_bumper) {
+                flywheel.setPower(-1);
+                flywheelB.setPower(-1);
+            }
+            if (!gamepad1.left_bumper && !gamepad1.right_bumper) {
+                flywheel.setPower(0);
+                flywheelB.setPower(0);
+            }
         }
-    }
 //green bull party at 4470 lennox blvd. november 3rd 2030
     }
+}

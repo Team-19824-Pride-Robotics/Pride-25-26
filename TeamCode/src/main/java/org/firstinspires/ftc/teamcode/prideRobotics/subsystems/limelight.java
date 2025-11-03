@@ -28,6 +28,7 @@ public class limelight {
         limelight.pipelineSwitch(pipeline);
     }
     public int scanAuto() {
+
         //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
         int pattern = -1;
         result = limelight.getLatestResult();
@@ -43,8 +44,9 @@ public class limelight {
         return pattern;
     }
     public double getDistance(){
-        if(result != null){
-           return 3370.925 * Math.pow(result.getTa(), -1.926565);
+        result = limelight.getLatestResult();
+        if(result != null && result.isValid()){
+            return 67.82807 * Math.pow(result.getTa(), -0.5);
         } else{
             return -1;
         }

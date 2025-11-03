@@ -27,6 +27,8 @@ public class redTeleop extends LinearOpMode {
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private double launchVel;
+    private double UpRightPos=0; //todo:set values
+    private double UpLeftPos=0;
 
     //flywheel setup
     private static double kP=0;
@@ -111,20 +113,55 @@ public class redTeleop extends LinearOpMode {
 
             //power calculations
             if(limelight.getDistance()==-1){
-                launchVel=1001; //Todo: Set to a low enough power to maintain stable voltage. Current val is a placeholder
+                launchVel=600;
             }else{
                 launchVel=lut.get(limelight.getDistance());
             }
             pidf.setSetPoint(launchVel);
 
             //ball kicking
-            if(gamepad2.right_bumper && launchVel<flywheel.getVelocity()+T && launchVel>flywheel.getVelocity()-T){
-                ballKickers.kickRight();
+            if(gamepad2.right_bumper){
+               launchRight=true;
+               launchLeft=false;
             }
-            if(gamepad2.left_bumper && launchVel<flywheel.getVelocity()+T && launchVel>flywheel.getVelocity()-T){
-                ballKickers.kickLeft();
+            if(gamepad2.left_bumper){
+                launchLeft=true;
+                launchRight=false;
+            }
+            if(launchRight||launchLeft){
+                if(limelight.getDistance()==-1){
+                    launchVel=1000;
+                }else{
+                    launchVel=lut.get(limelight.getDistance());
+                }
+                pidf.setSetPoint(launchVel);
+            }  else{
+                launchVel=600;
             }
 
+            if(launchRight) {
+                transferChanneler.coverRight();
+                ballKickers.retractLeft();
+                if (flywheel.getVelocity() == launchVel) {
+                    ballKickers.kickRight();
+                }
+            }
+            if(launchRight&&ballKickers.getRightPos()==UpRightPos){
+                ballKickers.retractRight();
+                launchRight=false;
+            }
+
+            if(launchLeft) {
+                transferChanneler.coverLeft();
+                ballKickers.retractRight();
+                if (flywheel.getVelocity() == launchVel) {
+                    ballKickers.kickRight();
+                }
+            }
+            if(launchLeft&&ballKickers.getLeftPos()==UpLeftPos){
+                ballKickers.retractLeft();
+                launchRight=false;
+            }
             //Channeler testing
 
             if(gamepad2.x){
