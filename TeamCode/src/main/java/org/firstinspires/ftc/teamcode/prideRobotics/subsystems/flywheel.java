@@ -23,8 +23,8 @@ public class flywheel {
     PIDFController pidf = new PIDFController(kP, kI, kD, kF);
 
     public flywheel(HardwareMap hardwareMap) {
-        flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
-        flywheelB = hardwareMap.get(DcMotorEx.class, "flywheelB");
+        flywheel = hardwareMap.get(DcMotorEx.class, "fW");
+        flywheelB = hardwareMap.get(DcMotorEx.class, "fWB");
 
     }
 

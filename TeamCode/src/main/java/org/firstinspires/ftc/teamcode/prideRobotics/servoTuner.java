@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -23,6 +24,7 @@ public class servoTuner extends LinearOpMode {
     private Servo servo;
     private DcMotor flywheel;
     private DcMotor flywheelB;
+    private AnalogInput servoE;
     //logic variable declarations
     private static double down = 0;
     private static double up = 1;
@@ -33,7 +35,7 @@ public class servoTuner extends LinearOpMode {
         servo = hardwareMap.get(Servo.class, "servo");
         flywheel = hardwareMap.get(DcMotor.class, "flywheel");
         flywheelB = hardwareMap.get(DcMotor.class, "flywheelB");
-
+        servoE = hardwareMap.get(AnalogInput.class, "E");
 
         waitForStart();
 
@@ -58,6 +60,8 @@ public class servoTuner extends LinearOpMode {
                 flywheel.setPower(0);
                 flywheelB.setPower(0);
             }
+            telemetry.addData("Servo pos: ", servoE.getVoltage() / 3.3 * 360);
+            telemetry.update();
         }
 //green bull party at 4470 lennox blvd. november 3rd 2030
     }

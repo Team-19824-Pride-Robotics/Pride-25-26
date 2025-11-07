@@ -27,8 +27,12 @@ public class redTeleop extends LinearOpMode {
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private double launchVel;
-    private double UpRightPos=0; //todo:set values
-    private double UpLeftPos=0;
+    private double UpRightPos=230;
+    private double UpLeftPos=185;
+    private double DownRightPos=309;
+    private double DownLeftPos=114;
+
+
 
     //flywheel setup
     private static double kP=0;
@@ -84,9 +88,9 @@ public class redTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             //drive control
-            double y = -gamepad2.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad2.left_stick_x;
-            double rx = gamepad2.right_stick_x;
+            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -97,10 +101,10 @@ public class redTeleop extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
-            frontLeftMotor.setPower(-frontLeftPower * (1-gamepad1.right_trigger));
-            backLeftMotor.setPower(-backLeftPower * (1-gamepad1.right_trigger));
+            frontLeftMotor.setPower(frontLeftPower * (1-gamepad1.right_trigger));
+            backLeftMotor.setPower(backLeftPower * (1-gamepad1.right_trigger));
             frontRightMotor.setPower(frontRightPower* (1-gamepad1.right_trigger));
-            backRightMotor.setPower(-backRightPower* (1-gamepad1.right_trigger));
+            backRightMotor.setPower(backRightPower* (1-gamepad1.right_trigger));
 
             //////////////
             //Mechansims//
@@ -128,6 +132,10 @@ public class redTeleop extends LinearOpMode {
                 launchLeft=true;
                 launchRight=false;
             }
+            if(gamepad2.back){
+                launchLeft=false;
+                launchRight=false;
+            }
             if(launchRight||launchLeft){
                 if(limelight.getDistance()==-1){
                     launchVel=1000;
@@ -140,27 +148,25 @@ public class redTeleop extends LinearOpMode {
             }
 
             if(launchRight) {
-                transferChanneler.coverRight();
                 ballKickers.retractLeft();
                 if (flywheel.getVelocity() == launchVel) {
                     ballKickers.kickRight();
                 }
             }
-            if(launchRight&&ballKickers.getRightPos()==UpRightPos){
+            if(launchRight&&ballKickers.getRightPos()<UpRightPos){
                 ballKickers.retractRight();
                 launchRight=false;
             }
 
             if(launchLeft) {
-                transferChanneler.coverLeft();
                 ballKickers.retractRight();
                 if (flywheel.getVelocity() == launchVel) {
-                    ballKickers.kickRight();
+                    ballKickers.kickLeft();
                 }
             }
-            if(launchLeft&&ballKickers.getLeftPos()==UpLeftPos){
+            if(launchLeft&&ballKickers.getLeftPos()>UpLeftPos){
                 ballKickers.retractLeft();
-                launchRight=false;
+                launchLeft=false;
             }
             //Channeler testing
 
@@ -175,7 +181,7 @@ public class redTeleop extends LinearOpMode {
             }
 
             //update mechs
-            flywheel.update(pidf.calculate());
+            flywheel.update(pidf.calculate(flywheel.getVelocity()));
             ballKickers.update();
             intake.update();
             transferChanneler.update();

@@ -13,8 +13,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class ballKickers {
 
     // Dashboard-tunable positions
-    public static double downLeftPosition = 1;
-    public static double upLeftPosition = 0.75;
+    public static double downLeftPosition = 0.9;
+    public static double upLeftPosition = 0.65;
     public static double downRightPosition = 0.9;
     public static double upRightPosition = 0.45;
 
@@ -27,10 +27,10 @@ public class ballKickers {
     private double desiredRightPosition;
 
     public ballKickers(HardwareMap hardwareMap) {
-        leftKicker = hardwareMap.get(ServoImplEx.class, "lK");
-        rightKicker = hardwareMap.get(ServoImplEx.class, "rK");
-        leftKickerE = hardwareMap.get(AnalogInput.class, "lKE");
-        rightKickerE = hardwareMap.get(AnalogInput.class, "rKE");
+        leftKicker = hardwareMap.get(ServoImplEx.class, "lBk");
+        rightKicker = hardwareMap.get(ServoImplEx.class, "rBK");
+        leftKickerE = hardwareMap.get(AnalogInput.class, "lBKE");
+        rightKickerE = hardwareMap.get(AnalogInput.class, "rBKE");
         leftKicker.setPwmRange(new PwmControl.PwmRange(505, 2495));
         rightKicker.setPwmRange(new PwmControl.PwmRange(505, 2495));
     }
