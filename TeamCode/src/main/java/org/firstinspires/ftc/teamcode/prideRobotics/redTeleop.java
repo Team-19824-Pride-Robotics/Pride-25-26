@@ -35,12 +35,7 @@ public class redTeleop extends LinearOpMode {
 
 
     //flywheel setup
-    private static double kP=0;
-    private static double kI=0;
-    private static double kD=0;
-    private static double kF=0;
-    private static int T=60;
-    PIDFController pidf = new PIDFController(kP, kI, kD, kF);
+
     InterpLUT lut = new InterpLUT();
 
 
@@ -121,7 +116,7 @@ public class redTeleop extends LinearOpMode {
             }else{
                 launchVel=lut.get(limelight.getDistance());
             }
-            pidf.setSetPoint(launchVel);
+
 
             //ball kicking
             if(gamepad2.right_bumper){
@@ -142,7 +137,6 @@ public class redTeleop extends LinearOpMode {
                 }else{
                     launchVel=lut.get(limelight.getDistance());
                 }
-                pidf.setSetPoint(launchVel);
             }  else{
                 launchVel=600;
             }
@@ -181,7 +175,7 @@ public class redTeleop extends LinearOpMode {
             }
 
             //update mechs
-            flywheel.update(pidf.calculate(flywheel.getVelocity()));
+            flywheel.update(launchVel);
             ballKickers.update();
             intake.update();
             transferChanneler.update();
