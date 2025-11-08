@@ -27,7 +27,7 @@ public class ballKickers {
     private double desiredRightPosition;
 
     public ballKickers(HardwareMap hardwareMap) {
-        leftKicker = hardwareMap.get(ServoImplEx.class, "lBk");
+        leftKicker = hardwareMap.get(ServoImplEx.class, "lBK");
         rightKicker = hardwareMap.get(ServoImplEx.class, "rBK");
         leftKickerE = hardwareMap.get(AnalogInput.class, "lBKE");
         rightKickerE = hardwareMap.get(AnalogInput.class, "rBKE");

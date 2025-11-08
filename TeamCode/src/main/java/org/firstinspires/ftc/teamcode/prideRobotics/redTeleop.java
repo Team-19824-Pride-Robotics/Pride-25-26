@@ -44,17 +44,18 @@ public class redTeleop extends LinearOpMode {
         //Setup interp table
 
         //Adding each val with a key
-        lut.add(1.1, 0.2); //todo: set values, these are placeholers.
+        lut.add(1.1, 0.2);
+        lut.add(4.0, 0.9);//todo: set values, these are placeholers.
 
         //generating final equation
         lut.createLUT();
 
         // Declare motor ok
         // Absolutely yes make ID's match configuration
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("lF");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("lB");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("rF");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("rB");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("fLD");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("bLD");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("fRD");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("bRD");
 
         //reverse drive motors
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -121,11 +122,9 @@ public class redTeleop extends LinearOpMode {
             //ball kicking
             if(gamepad2.right_bumper){
                launchRight=true;
-               launchLeft=false;
             }
             if(gamepad2.left_bumper){
                 launchLeft=true;
-                launchRight=false;
             }
             if(gamepad2.back){
                 launchLeft=false;
