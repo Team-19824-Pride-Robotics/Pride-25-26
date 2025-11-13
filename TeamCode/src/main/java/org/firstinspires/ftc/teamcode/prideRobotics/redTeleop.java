@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.prideRobotics;
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
@@ -27,31 +28,34 @@ public class redTeleop extends LinearOpMode {
     private limelight limelight;
     private transferChanneler transferChanneler;
 //fun variables
-    private static double strafeFix=1;
+    private static double strafeFix=1; //todo: set value
+    private static double driveTolerance=0.01; //todo: set value
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private double launchVel;
+    private static double setLaunchVel=1000;
     private double UpRightPos=230;
     private double UpLeftPos=185;
     private double DownRightPos=309;
     private double DownLeftPos=114;
 
-
-
-    //flywheel setup
-
+    //Other stuff
     InterpLUT lut = new InterpLUT();
 
+    private static double kP=0;
+    private static double kI=0;
+    private static double kD=0;
+    PIDController pid = new PIDController(kP, kI, kD);
 
     @Override
     public void runOpMode() throws InterruptedException {
-        //Setup interp table
+        //drive pid setup
+        pid.setTolerance(5);
 
-        //Adding each val with a key
-        lut.add(1.1, 0.2);
-        lut.add(4.0, 0.9);//todo: set values, these are placeholers.
+        //Intep table setup
+        lut.add(0, 0.2);
+        lut.add(3000, 0.9);//todo: set values, these are placeholers.
 
-        //generating final equation
         lut.createLUT();
 
         // Declare motor ok
@@ -114,12 +118,19 @@ public class redTeleop extends LinearOpMode {
             double frontRightPower = (rotY - rotX - rx) / denominator;
             double backRightPower = (rotY + rotX - rx) / denominator;
 
-
-            frontLeftMotor.setPower(frontLeftPower * (1-gamepad1.right_trigger));
-            backLeftMotor.setPower(backLeftPower * (1-gamepad1.right_trigger));
-            frontRightMotor.setPower(frontRightPower* (1-gamepad1.right_trigger));
-            backRightMotor.setPower(backRightPower* (1-gamepad1.right_trigger));
-
+            if(!gamepad1.a) {
+                frontLeftMotor.setPower(frontLeftPower * (1 - gamepad1.right_trigger));
+                backLeftMotor.setPower(backLeftPower * (1 - gamepad1.right_trigger));
+                frontRightMotor.setPower(frontRightPower * (1 - gamepad1.right_trigger));
+                backRightMotor.setPower(backRightPower * (1 - gamepad1.right_trigger));
+            }
+            //drivetrain correction
+            if(gamepad1.a) {
+                frontLeftMotor.setPower(pid.calculate(0, limelight.getAngle())); //todo:figure out which side to reverse
+                backLeftMotor.setPower(pid.calculate(0, limelight.getAngle()));
+                frontRightMotor.setPower(-pid.calculate(0, limelight.getAngle()));
+                backRightMotor.setPower(-pid.calculate(0, limelight.getAngle()));;
+            }
             //////////////
             //Mechansims//
             //////////////
@@ -131,9 +142,9 @@ public class redTeleop extends LinearOpMode {
 
             //power calculations
             if(limelight.getDistance()==-1){
-                launchVel=600;
+                //launchVel=600;
             }else{
-                launchVel=lut.get(limelight.getDistance());
+                //launchVel=lut.get(limelight.getDistance());
             }
 
 
@@ -152,7 +163,7 @@ public class redTeleop extends LinearOpMode {
 
             if(launchRight||launchLeft){
                 if(gamepad1.start){
-                    launchVel=600;
+                    launchVel=setLaunchVel;
                 }
                 else if(limelight.getDistance()==-1){
                     launchVel=1000;
@@ -194,7 +205,7 @@ public class redTeleop extends LinearOpMode {
                 transferChanneler.center();
             }
             if(gamepad2.b){
-                transferChanneler.coverRight();
+                ballKickers.kickLeft();
             }
 
             //update mechs

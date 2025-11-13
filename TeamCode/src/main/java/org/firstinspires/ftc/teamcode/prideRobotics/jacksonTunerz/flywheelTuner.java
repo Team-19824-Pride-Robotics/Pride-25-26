@@ -37,6 +37,8 @@ public class flywheelTuner extends LinearOpMode {
             if(gamepad1.b){
                 flywheel.setPower(1);
             }
+
+
             if(!gamepad1.b) {
                 flywheel.update(launchPower);
             }

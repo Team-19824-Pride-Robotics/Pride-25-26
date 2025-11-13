@@ -60,7 +60,9 @@ public class interpTableTuner extends LinearOpMode {
 
             //update mechs
             flywheel.update(launchVel);
+if(gamepad1.right_bumper){
 
+}
 
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());

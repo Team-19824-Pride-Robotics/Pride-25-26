@@ -47,11 +47,11 @@ private static double power = 0.5;
         timer.reset();
         timer.startTime();
         while(seconds<time){
-        seconds=timer.seconds();
-        frontLeftMotor.setPower(power);
-        frontRightMotor.setPower(power);
-        backLeftMotor.setPower(power);
-        backRightMotor.setPower(power);
+            seconds=timer.seconds();
+            frontLeftMotor.setPower(power);
+            frontRightMotor.setPower(power);
+            backLeftMotor.setPower(power);
+            backRightMotor.setPower(power);
         }
         frontLeftMotor.setPower(0);
         frontRightMotor.setPower(0);
