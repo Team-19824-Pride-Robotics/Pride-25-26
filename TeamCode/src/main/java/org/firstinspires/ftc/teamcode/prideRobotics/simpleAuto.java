@@ -22,9 +22,14 @@ public class simpleAuto extends LinearOpMode {
 double seconds=0;
 private static double time = 3;
 private static double power = 0.5;
+private static double launchPower = 1300;
+    private static double UpRightPos=180;
+    private static double UpLeftPos=240;
+    private flywheel flywheel;
+    private ballKickers ballKickers;
+    private limelight limelight;
     @Override
     public void runOpMode() throws InterruptedException {
-
 
         // Declare motor ok
         // Absolutely yes make ID's match configuration
@@ -37,16 +42,63 @@ private static double power = 0.5;
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        ElapsedTime timer = new ElapsedTime();
 
+        limelight = new limelight(hardwareMap);
+        flywheel = new flywheel(hardwareMap);
+        ballKickers = new ballKickers(hardwareMap);
 
+        limelight.init();
+        limelight.setPipeline(3);
+        flywheel.init();
+        ballKickers.retractRight();
+        ballKickers.retractLeft();
 
         waitForStart();
 
         if (isStopRequested()) return;
-        ElapsedTime timer = new ElapsedTime();
+        flywheel.update(launchPower);
+        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
+            flywheel.update(launchPower);
+            telemetry.addData("launch vel", flywheel.getVelocity());
+            telemetry.addData("set vel", launchPower);
+            telemetry.update();
+
+        }
+        ballKickers.kickLeft();
+        ballKickers.update();
+        while(!(ballKickers.getLeftPos()<UpLeftPos)){
+            idle();
+        }
+        flywheel.update(launchPower);
+        ballKickers.retractLeft();
+        ballKickers.update();
+        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
+            flywheel.update(launchPower);
+        }
+        ballKickers.kickRight();
+        ballKickers.update();
+        while(!(ballKickers.getRightPos()>UpRightPos)){
+            flywheel.update(launchPower);
+        }
+        ballKickers.retractRight();
+        ballKickers.update();
+        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
+            flywheel.update(launchPower);
+        }
+        ballKickers.kickLeft();
+        ballKickers.update();
+        while(!(ballKickers.getLeftPos()<UpLeftPos)){
+            idle();
+        }
+        flywheel.update(0);
+        ballKickers.retractLeft();
+        ballKickers.update();
+        //I know this is not how i should do it but whatever
+
         timer.reset();
         timer.startTime();
-        
+
         while(seconds<time){
             seconds=timer.seconds();
             frontLeftMotor.setPower(power);

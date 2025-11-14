@@ -34,7 +34,7 @@ public class redTeleop extends LinearOpMode {
     private boolean launchRight=false;
     private double launchVel=0;
     private static double defaultLaunchVel =1000;
-    private static double UpRightPos=185;
+    private static double UpRightPos=180;
     private static double UpLeftPos=240;
     private double DownRightPos=309;
     private double DownLeftPos=114;
