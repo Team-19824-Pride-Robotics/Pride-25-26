@@ -28,10 +28,10 @@ private static double power = 0.5;
 
         // Declare motor ok
         // Absolutely yes make ID's match configuration
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("lF");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("lB");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("rF");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("rB");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("fLD");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("bLD");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("fRD");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("bRD");
 
         //reverse drive motors
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -46,6 +46,7 @@ private static double power = 0.5;
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
         timer.startTime();
+        
         while(seconds<time){
             seconds=timer.seconds();
             frontLeftMotor.setPower(power);

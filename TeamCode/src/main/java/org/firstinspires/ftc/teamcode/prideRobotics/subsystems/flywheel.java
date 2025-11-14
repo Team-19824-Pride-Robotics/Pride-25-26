@@ -35,7 +35,8 @@ public class flywheel {
         flywheelB.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         flywheelB.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        flywheel.setDirection(DcMotorEx.Direction.REVERSE);
+        flywheelB.setDirection(DcMotorEx.Direction.REVERSE);
     }
 
 
@@ -47,15 +48,17 @@ public class flywheel {
     }
 
     public void update(double launchPower) {
-        flywheelVelocity = flywheelB.getVelocity();
-
+        if (launchPower != 0) {
             flywheel.setPower(pidf.calculate(flywheel.getVelocity(), launchPower));
             flywheelB.setPower(pidf.calculate(flywheelB.getVelocity(), launchPower));
-
+        } else {
+            flywheel.setPower(0);
+            flywheelB.setPower(0);
+        }
     }
     public void setPower(double power){
-        flywheel.setPower(power);
-        flywheelB.setPower(power);
+        flywheel.setPower(-power);
+        flywheelB.setPower(-power);
     }
 
 

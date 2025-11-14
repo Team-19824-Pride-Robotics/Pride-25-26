@@ -25,6 +25,7 @@ public class flywheelTuner extends LinearOpMode {
 
 
         flywheel = new flywheel(hardwareMap);
+        flywheel.init();
         TelemetryManager panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         waitForStart();
 

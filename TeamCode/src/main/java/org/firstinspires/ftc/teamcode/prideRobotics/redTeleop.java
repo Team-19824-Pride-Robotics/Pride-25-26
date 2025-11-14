@@ -32,10 +32,10 @@ public class redTeleop extends LinearOpMode {
     private static double driveTolerance=0.01; //todo: set value
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private double launchVel;
-    private static double setLaunchVel=1000;
-    private double UpRightPos=230;
-    private double UpLeftPos=185;
+    private double launchVel=0;
+    private static double defaultLaunchVel =1000;
+    private static double UpRightPos=185;
+    private static double UpLeftPos=240;
     private double DownRightPos=309;
     private double DownLeftPos=114;
 
@@ -82,7 +82,7 @@ public class redTeleop extends LinearOpMode {
 
         //init mechs
         limelight.init();
-        limelight.setPipeline(3);
+        limelight.setPipeline(4);
         flywheel.init();
         ballKickers.retractRight();
         ballKickers.retractLeft();
@@ -96,9 +96,7 @@ public class redTeleop extends LinearOpMode {
 
         while (opModeIsActive()) {
             //drive control
-            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x;
-            double rx = gamepad1.right_stick_x;
+
 
             if (gamepad1.options) {
                 imu.resetYaw();
@@ -106,17 +104,19 @@ public class redTeleop extends LinearOpMode {
 
             double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS); //todo: check control hub model
 
-            double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-            double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = gamepad1.right_stick_x;
 
-            rotX = rotX * strafeFix;
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio,
+            // but only if at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+            double frontLeftPower = (y + x + rx) / denominator;
+            double backLeftPower = (y - x + rx) / denominator;
+            double frontRightPower = (y - x - rx) / denominator;
+            double backRightPower = (y + x - rx) / denominator;
 
-
-            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
-            double frontLeftPower = (rotY + rotX + rx) / denominator;
-            double backLeftPower = (rotY - rotX + rx) / denominator;
-            double frontRightPower = (rotY - rotX - rx) / denominator;
-            double backRightPower = (rotY + rotX - rx) / denominator;
 
             if(!gamepad1.a) {
                 frontLeftMotor.setPower(frontLeftPower * (1 - gamepad1.right_trigger));
@@ -141,11 +141,7 @@ public class redTeleop extends LinearOpMode {
             //flywheel
 
             //power calculations
-            if(limelight.getDistance()==-1){
-                //launchVel=600;
-            }else{
-                //launchVel=lut.get(limelight.getDistance());
-            }
+
 
 
             //ball kicking
@@ -162,37 +158,35 @@ public class redTeleop extends LinearOpMode {
 
 
             if(launchRight||launchLeft){
-                if(gamepad1.start){
-                    launchVel=setLaunchVel;
-                }
-                else if(limelight.getDistance()==-1){
-                    launchVel=1000;
+
+                if(limelight.getDistance()==-1){
+                    launchVel=defaultLaunchVel;
                 }else{
                     launchVel=lut.get(limelight.getDistance());
                 }
             }  else{
-                launchVel=600;
+                launchVel=0;
             }
 
 
             if(launchRight) {
                 ballKickers.retractLeft();
-                if (flywheel.getVelocity() == launchVel) {
+                if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
                     ballKickers.kickRight();
                 }
             }
-            if(launchRight&&ballKickers.getRightPos()<UpRightPos){
+            if(launchRight&&ballKickers.getRightPos()>UpRightPos){
                 ballKickers.retractRight();
                 launchRight=false;
             }
 
             if(launchLeft) {
                 ballKickers.retractRight();
-                if (flywheel.getVelocity() == launchVel) {
+                if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
                     ballKickers.kickLeft();
                 }
             }
-            if(launchLeft&&ballKickers.getLeftPos()>UpLeftPos){
+            if(launchLeft&&ballKickers.getLeftPos()<UpLeftPos){
                 ballKickers.retractLeft();
                 launchLeft=false;
             }
@@ -218,6 +212,8 @@ public class redTeleop extends LinearOpMode {
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());
+            telemetry.addData("ball kicker pos", ballKickers.getRightPos());
+            telemetry.addData("ball kicker set pos", UpRightPos);
             telemetry.update();
 
         }
