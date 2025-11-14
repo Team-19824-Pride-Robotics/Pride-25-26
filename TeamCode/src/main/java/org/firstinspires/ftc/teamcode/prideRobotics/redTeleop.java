@@ -82,7 +82,7 @@ public class redTeleop extends LinearOpMode {
 
         //init mechs
         limelight.init();
-        limelight.setPipeline(4);
+        limelight.setPipeline(3);
         flywheel.init();
         ballKickers.retractRight();
         ballKickers.retractLeft();
@@ -212,8 +212,6 @@ public class redTeleop extends LinearOpMode {
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());
-            telemetry.addData("ball kicker pos", ballKickers.getRightPos());
-            telemetry.addData("ball kicker set pos", UpRightPos);
             telemetry.update();
 
         }
