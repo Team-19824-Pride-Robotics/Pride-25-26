@@ -34,7 +34,7 @@ public class redTeleop extends LinearOpMode {
     private boolean launchRight=false;
     private double launchVel=0;
     private static double defaultLaunchVel =1000;
-    private static double UpRightPos=180;
+    private static double UpRightPos=185;
     private static double UpLeftPos=240;
     private double DownRightPos=309;
     private double DownLeftPos=114;
@@ -53,8 +53,18 @@ public class redTeleop extends LinearOpMode {
         pid.setTolerance(5);
 
         //Intep table setup
-        lut.add(0, 0.2);
-        lut.add(3000, 0.9);//todo: set values, these are placeholers.
+        lut.add(45, 950);
+        lut.add(48, 1000);
+        lut.add(56, 1100);
+        lut.add(60, 1120);
+        lut.add(70, 1140);
+        lut.add(80, 1160);
+        lut.add(90, 1180);
+        lut.add(100, 1200);
+        lut.add(110, 1260);
+        lut.add(120, 1280);
+        lut.add(130, 1340);
+        lut.add(140, 1360);
 
         lut.createLUT();
 
@@ -102,7 +112,7 @@ public class redTeleop extends LinearOpMode {
                 imu.resetYaw();
             }
 
-            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS); //todo: check control hub model
+
 
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
@@ -162,6 +172,7 @@ public class redTeleop extends LinearOpMode {
                 if(limelight.getDistance()==-1){
                     launchVel=defaultLaunchVel;
                 }else{
+
                     launchVel=lut.get(limelight.getDistance());
                 }
             }  else{
@@ -212,6 +223,8 @@ public class redTeleop extends LinearOpMode {
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());
+            telemetry.addData("Right kciker pos: ", ballKickers.getRightPos());
+            telemetry.addData("Desired pos: ", ballKickers.getRightDesiredPos());
             telemetry.update();
 
         }

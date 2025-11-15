@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler
 @Configurable
 public class simpleAuto extends LinearOpMode {
 double seconds=0;
+double motif=0;
 private static double time = 3;
 private static double power = 0.5;
 private static double launchPower = 1300;
@@ -57,6 +58,9 @@ private static double launchPower = 1300;
         waitForStart();
 
         if (isStopRequested()) return;
+        motif=limelight.scanAuto();
+        telemetry.addData("motif", motif);
+        telemetry.update();
         flywheel.update(launchPower);
         while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             flywheel.update(launchPower);
@@ -65,36 +69,77 @@ private static double launchPower = 1300;
             telemetry.update();
 
         }
-        ballKickers.kickLeft();
-        ballKickers.update();
-        while(!(ballKickers.getLeftPos()<UpLeftPos)){
-            idle();
+        if(motif==1 || motif==2){
+            ballKickers.kickLeft();
+            ballKickers.update();
+            while(!(ballKickers.getLeftPos()<UpLeftPos)){
+                flywheel.update(launchPower);
+                idle();
+            }
+            ballKickers.retractLeft();
+            ballKickers.update();
         }
+        else{
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(!(ballKickers.getRightPos()>UpRightPos)){
+                flywheel.update(launchPower);
+                idle();
+            }
+            ballKickers.retractRight();
+            ballKickers.update();
+        }
+
         flywheel.update(launchPower);
-        ballKickers.retractLeft();
-        ballKickers.update();
         while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             flywheel.update(launchPower);
         }
-        ballKickers.kickRight();
-        ballKickers.update();
-        while(!(ballKickers.getRightPos()>UpRightPos)){
-            flywheel.update(launchPower);
+        if(motif==0 || motif==2){
+            ballKickers.kickLeft();
+            ballKickers.update();
+            while(!(ballKickers.getLeftPos()<UpLeftPos)){
+                flywheel.update(launchPower);
+                idle();
+            }
+            ballKickers.retractLeft();
+            ballKickers.update();
         }
-        ballKickers.retractRight();
-        ballKickers.update();
+        else{
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(!(ballKickers.getRightPos()>UpRightPos)){
+                flywheel.update(launchPower);
+                idle();
+            }
+            ballKickers.retractRight();
+            ballKickers.update();
+        }
         while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             flywheel.update(launchPower);
         }
-        ballKickers.kickLeft();
-        ballKickers.update();
-        while(!(ballKickers.getLeftPos()<UpLeftPos)){
-            idle();
+        if(motif==0 || motif==1){
+            ballKickers.kickLeft();
+            ballKickers.update();
+            while(!(ballKickers.getLeftPos()<UpLeftPos)){
+                flywheel.update(launchPower);
+                idle();
+            }
+            ballKickers.retractLeft();
+            ballKickers.update();
+        }
+        else{
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(!(ballKickers.getRightPos()>UpRightPos)){
+                flywheel.update(launchPower);
+                idle();
+            }
+            ballKickers.retractRight();
+            ballKickers.update();
         }
         flywheel.update(0);
-        ballKickers.retractLeft();
-        ballKickers.update();
-        //I know this is not how i should do it but whatever
+
+
 
         timer.reset();
         timer.startTime();
