@@ -1,6 +1,4 @@
 package org.firstinspires.ftc.teamcode.prideRobotics;
-import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -11,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.intake;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.flywheel;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
@@ -20,7 +17,7 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler
 
 @TeleOp
 @Configurable
-public class redTeleop extends LinearOpMode {
+public class Teleop extends LinearOpMode {
 //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -30,27 +27,25 @@ public class redTeleop extends LinearOpMode {
 //fun variables
     private static double strafeFix=1; //todo: set value
     private static double driveTolerance=0.01; //todo: set value
+    private static double ejectVel = 600;
+    private static double defaultLaunchVel =1000;
+    private static double spinUpPower = 1;
+    private static double UpRightPos=185;
+    private static double UpLeftPos=240;
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private double launchVel=0;
-    private static double defaultLaunchVel =1000;
-    private static double UpRightPos=185;
-    private static double UpLeftPos=240;
     private double DownRightPos=309;
     private double DownLeftPos=114;
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
 
-    private static double kP=0;
-    private static double kI=0;
-    private static double kD=0;
-    PIDController pid = new PIDController(kP, kI, kD);
+
 
     @Override
     public void runOpMode() throws InterruptedException {
-        //drive pid setup
-        pid.setTolerance(5);
+
 
         //Intep table setup
         lut.add(45, 950);
@@ -111,7 +106,12 @@ public class redTeleop extends LinearOpMode {
             if (gamepad1.options) {
                 imu.resetYaw();
             }
-
+            if(gamepad2.dpad_left){
+                limelight.setPipeline(3);
+            }
+            if(gamepad2.dpad_right){
+                limelight.setPipeline(4);
+            }
 
 
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
@@ -133,13 +133,6 @@ public class redTeleop extends LinearOpMode {
                 backLeftMotor.setPower(backLeftPower * (1 - gamepad1.right_trigger));
                 frontRightMotor.setPower(frontRightPower * (1 - gamepad1.right_trigger));
                 backRightMotor.setPower(backRightPower * (1 - gamepad1.right_trigger));
-            }
-            //drivetrain correction
-            if(gamepad1.a) {
-                frontLeftMotor.setPower(pid.calculate(0, limelight.getAngle())); //todo:figure out which side to reverse
-                backLeftMotor.setPower(pid.calculate(0, limelight.getAngle()));
-                frontRightMotor.setPower(-pid.calculate(0, limelight.getAngle()));
-                backRightMotor.setPower(-pid.calculate(0, limelight.getAngle()));;
             }
             //////////////
             //Mechansims//
@@ -168,14 +161,17 @@ public class redTeleop extends LinearOpMode {
 
 
             if(launchRight||launchLeft){
-
-                if(limelight.getDistance()==-1){
+                if(gamepad2.dpad_up){
+                    launchVel=ejectVel;
+                }
+                else if(limelight.getDistance()==-1){
                     launchVel=defaultLaunchVel;
                 }else{
 
                     launchVel=lut.get(limelight.getDistance());
                 }
-            }  else{
+            }
+            else{
                 launchVel=0;
             }
 
@@ -214,7 +210,11 @@ public class redTeleop extends LinearOpMode {
             }
 
             //update mechs
-            flywheel.update(launchVel);
+            if(gamepad2.x){
+                flywheel.setPower(spinUpPower);
+            }else {
+                flywheel.update(launchVel);
+            }
             ballKickers.update();
             intake.update();
             transferChanneler.update();

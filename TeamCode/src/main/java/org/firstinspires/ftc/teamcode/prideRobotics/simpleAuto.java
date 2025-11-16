@@ -21,7 +21,9 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler
 public class simpleAuto extends LinearOpMode {
 double seconds=0;
 double motif=0;
-private static double time = 3;
+private static double thirdLaunchWait = 1;
+private static double driveWait = 1;
+private static double driveTime = 1;
 private static double power = 0.5;
 private static double launchPower = 1300;
     private static double UpRightPos=180;
@@ -58,9 +60,10 @@ private static double launchPower = 1300;
         waitForStart();
 
         if (isStopRequested()) return;
+        //Scan obelisk
         motif=limelight.scanAuto();
-        telemetry.addData("motif", motif);
-        telemetry.update();
+
+        //Launch first artifact
         flywheel.update(launchPower);
         while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             flywheel.update(launchPower);
@@ -90,6 +93,7 @@ private static double launchPower = 1300;
             ballKickers.update();
         }
 
+        //launch second artifact
         flywheel.update(launchPower);
         while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             flywheel.update(launchPower);
@@ -114,7 +118,13 @@ private static double launchPower = 1300;
             ballKickers.retractRight();
             ballKickers.update();
         }
-        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
+
+        //launch third artifact
+        timer.reset();
+        timer.startTime();
+        seconds=timer.seconds();
+        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40) && seconds<thirdLaunchWait){
+            seconds=timer.seconds();
             flywheel.update(launchPower);
         }
         if(motif==0 || motif==1){
@@ -138,13 +148,18 @@ private static double launchPower = 1300;
             ballKickers.update();
         }
         flywheel.update(0);
-
-
-
         timer.reset();
         timer.startTime();
+        seconds=timer.seconds();
+        while(seconds<driveWait){
+            seconds=timer.seconds();
+        }
 
-        while(seconds<time){
+//exit start zone, twin
+        timer.reset();
+        timer.startTime();
+        seconds=timer.seconds();
+        while(seconds<driveTime){
             seconds=timer.seconds();
             frontLeftMotor.setPower(power);
             frontRightMotor.setPower(power);
@@ -158,4 +173,12 @@ private static double launchPower = 1300;
 
     }
 }
-//green bull party at 4470 lennox blvd. november 3rd 2030
+//hey roar, stop stealing my code 😡😡😡😡😡😡😡😡
+
+
+
+
+
+
+
+//jk idc 😊
