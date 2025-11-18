@@ -30,17 +30,18 @@ public class limelight {
     public int scanAuto() {
 
         //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
-        int pattern = -1;
+        int pattern = 0;
         result = limelight.getLatestResult();
         for (int i = 0; i < 3; i++) {
             limelight.pipelineSwitch(i);
-            while (result.getPipelineIndex() != i) {
-                result = limelight.getLatestResult();
-                if (result != null && result.getPipelineIndex() == 0) {
-                    pattern = i;
+                while (result.getPipelineIndex() != i) {
+                    result = limelight.getLatestResult();
+                    if (result != null && result.getPipelineIndex() == 0) {
+                        pattern = i;
+                    }
                 }
             }
-        }
+
         return pattern;
     }
     public double getDistance(){

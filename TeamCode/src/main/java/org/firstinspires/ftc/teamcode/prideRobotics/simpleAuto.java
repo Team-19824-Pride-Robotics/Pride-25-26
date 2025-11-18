@@ -21,16 +21,20 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler
 public class simpleAuto extends LinearOpMode {
 double seconds=0;
 double motif=0;
-private static double thirdLaunchWait = 1;
-private static double driveWait = 1;
+private static double secondLaunchWait = 3;
+private static double thirdLaunchWait = 4;
+private static double driveWait = 3;
 private static double driveTime = 1;
 private static double power = 0.5;
-private static double launchPower = 1300;
+private static double launchPower = 1280;
     private static double UpRightPos=180;
     private static double UpLeftPos=240;
+    private double DownLeftPos=114;
+    private double DownRightPos=309;
     private flywheel flywheel;
     private ballKickers ballKickers;
     private limelight limelight;
+    private intake intake;
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -50,9 +54,10 @@ private static double launchPower = 1300;
         limelight = new limelight(hardwareMap);
         flywheel = new flywheel(hardwareMap);
         ballKickers = new ballKickers(hardwareMap);
+        intake = new intake(hardwareMap);
 
         limelight.init();
-        limelight.setPipeline(3);
+        limelight.setPipeline(0);
         flywheel.init();
         ballKickers.retractRight();
         ballKickers.retractLeft();
@@ -98,20 +103,32 @@ private static double launchPower = 1300;
         while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             flywheel.update(launchPower);
         }
+        timer.reset();
+        timer.startTime();
+        seconds=timer.seconds();
         if(motif==0 || motif==2){
+            while(!(ballKickers.getLeftPos()>DownLeftPos) && (seconds = timer.seconds())<secondLaunchWait){
+                seconds=timer.seconds();
+                flywheel.update(launchPower);
+            }
             ballKickers.kickLeft();
             ballKickers.update();
             while(!(ballKickers.getLeftPos()<UpLeftPos)){
+                seconds=timer.seconds();
                 flywheel.update(launchPower);
-                idle();
             }
             ballKickers.retractLeft();
             ballKickers.update();
         }
         else{
+            while(!(ballKickers.getRightPos()<DownRightPos) && (seconds = timer.seconds())<secondLaunchWait){
+                seconds=timer.seconds();
+                flywheel.update(launchPower);
+            }
             ballKickers.kickRight();
             ballKickers.update();
             while(!(ballKickers.getRightPos()>UpRightPos)){
+                seconds=timer.seconds();
                 flywheel.update(launchPower);
                 idle();
             }
@@ -123,11 +140,22 @@ private static double launchPower = 1300;
         timer.reset();
         timer.startTime();
         seconds=timer.seconds();
-        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40) && seconds<thirdLaunchWait){
+        while(!(flywheel.getVelocity() < launchPower+40 && flywheel.getVelocity() > launchPower-40)){
             seconds=timer.seconds();
+            intake.setPower(-1);
+            intake.update();
             flywheel.update(launchPower);
+
         }
+
         if(motif==0 || motif==1){
+
+            while(!(ballKickers.getLeftPos()>DownLeftPos) && (seconds = timer.seconds())<thirdLaunchWait){
+                seconds=timer.seconds();
+                flywheel.update(launchPower);
+                intake.setPower(-1);
+                intake.update();
+            }
             ballKickers.kickLeft();
             ballKickers.update();
             while(!(ballKickers.getLeftPos()<UpLeftPos)){
@@ -138,6 +166,12 @@ private static double launchPower = 1300;
             ballKickers.update();
         }
         else{
+            while(!(ballKickers.getRightPos()<DownRightPos) && (seconds = timer.seconds())<thirdLaunchWait){
+                seconds=timer.seconds();
+                flywheel.update(launchPower);
+                intake.setPower(-1);
+                intake.update();
+            }
             ballKickers.kickRight();
             ballKickers.update();
             while(!(ballKickers.getRightPos()>UpRightPos)){
@@ -147,19 +181,21 @@ private static double launchPower = 1300;
             ballKickers.retractRight();
             ballKickers.update();
         }
+        intake.setPower(0);
         flywheel.update(0);
         timer.reset();
         timer.startTime();
         seconds=timer.seconds();
-        while(seconds<driveWait){
+        while((seconds = timer.seconds())<driveWait){
             seconds=timer.seconds();
+            idle();
         }
 
 //exit start zone, twin
         timer.reset();
         timer.startTime();
         seconds=timer.seconds();
-        while(seconds<driveTime){
+        while((seconds = timer.seconds())<driveTime){
             seconds=timer.seconds();
             frontLeftMotor.setPower(power);
             frontRightMotor.setPower(power);

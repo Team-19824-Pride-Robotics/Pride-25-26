@@ -14,7 +14,7 @@ public class transferChanneler {
 
     // Dashboard-tunable positions
     public static double leftPosition = 0.55;
-    public static double centerPosition = 0.37;
+    public static double centerPosition = 0.385;
     public static double rightPosition = 0.2;
     private final ServoImplEx channeler;
 

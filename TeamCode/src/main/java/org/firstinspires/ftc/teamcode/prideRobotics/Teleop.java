@@ -129,10 +129,10 @@ public class Teleop extends LinearOpMode {
 
 
             if(!gamepad1.a) {
-                frontLeftMotor.setPower(frontLeftPower * (1 - gamepad1.right_trigger));
-                backLeftMotor.setPower(backLeftPower * (1 - gamepad1.right_trigger));
-                frontRightMotor.setPower(frontRightPower * (1 - gamepad1.right_trigger));
-                backRightMotor.setPower(backRightPower * (1 - gamepad1.right_trigger));
+                frontLeftMotor.setPower(frontLeftPower * (1 - gamepad1.right_trigger) * 0.7);
+                backLeftMotor.setPower(backLeftPower * (1 - gamepad1.right_trigger) * 0.7);
+                frontRightMotor.setPower(frontRightPower * (1 - gamepad1.right_trigger) * 0.7);
+                backRightMotor.setPower(backRightPower * (1 - gamepad1.right_trigger) * 0.7);
             }
             //////////////
             //Mechansims//
@@ -206,12 +206,12 @@ public class Teleop extends LinearOpMode {
                 transferChanneler.center();
             }
             if(gamepad2.b){
-                ballKickers.kickLeft();
+                transferChanneler.coverRight();
             }
 
             //update mechs
             if(gamepad2.x){
-                flywheel.setPower(spinUpPower);
+                flywheel.setPower(-spinUpPower);
             }else {
                 flywheel.update(launchVel);
             }
