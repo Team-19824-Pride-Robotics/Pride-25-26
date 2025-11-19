@@ -12,9 +12,10 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 @Configurable
 public class colorSensors {
 
-    private NormalizedColorSensor leftSensor;
-    private NormalizedColorSensor rightSensor;
-
+    private NormalizedColorSensor lLS;
+    private NormalizedColorSensor rLS;
+    private NormalizedColorSensor rRS;
+    private NormalizedColorSensor lRS;
 
     public static double redThresh=0;
     public static double blueThresh=0;
@@ -22,46 +23,69 @@ public class colorSensors {
 
 
     public colorSensors(HardwareMap hardwareMap) {
-        leftSensor = hardwareMap.get(NormalizedColorSensor.class, "leftSensor");
-        rightSensor = hardwareMap.get(NormalizedColorSensor.class, "rightSensor");
+        lLS = hardwareMap.get(NormalizedColorSensor.class, "lLS");
+        rLS = hardwareMap.get(NormalizedColorSensor.class, "rLS");
+        lRS = hardwareMap.get(NormalizedColorSensor.class, "lRS");
+        rRS = hardwareMap.get(NormalizedColorSensor.class, "rRS");
 
     }
 // -1=nothing detected
 // 0 =purple
 // 1 =green
     public int getColorLeft() {
-        NormalizedRGBA colors = leftSensor.getNormalizedColors();
-        if ((colors.red + colors.blue) / 2 > colors.green) {
-            if (colors.red > redThresh && colors.blue > blueThresh) {
-                return 0;
-            } else {
-                return -1;
-            }
-        } else {
-            if (colors.green>greenThresh) {
+        NormalizedRGBA colorsL = lLS.getNormalizedColors();
+        NormalizedRGBA colorsR = rLS.getNormalizedColors();
+        if ((colorsL.red + colorsL.blue) / 2 > colorsL.green) {
+            if (colorsL.red > redThresh && colorsL.blue > blueThresh) {
                 return 1;
             } else {
-                return -1;
+                return 0;
             }
+        } else if ((colorsR.red + colorsR.blue) / 2 > colorsR.green){
+            if (colorsR.red > redThresh && colorsR.blue > blueThresh) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else if(colorsL.green>greenThresh) {
+            return 2;
+        } else if(colorsR.green>greenThresh) {
+            return 2;
+        }  else{
+            return 0;
         }
     }
     public int getColorRight() {
-        NormalizedRGBA colors = rightSensor.getNormalizedColors();
-        if ((colors.red + colors.blue) / 2 > colors.green) {
-            if (colors.red > redThresh && colors.blue > blueThresh) {
-                return 0;
-            } else {
-                return -1;
-            }
-        } else {
-            if (colors.green>greenThresh) {
-                return 2;
+        NormalizedRGBA colorsL = lRS.getNormalizedColors();
+        NormalizedRGBA colorsR = rRS.getNormalizedColors();
+        if ((colorsL.red + colorsL.blue) / 2 > colorsL.green) {
+            if (colorsL.red > redThresh && colorsL.blue > blueThresh) {
+                return 1;
             } else {
                 return 0;
             }
+        } else if ((colorsR.red + colorsR.blue) / 2 > colorsR.green){
+            if (colorsR.red > redThresh && colorsR.blue > blueThresh) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else if(colorsL.green>greenThresh) {
+            return 2;
+        } else if(colorsR.green>greenThresh) {
+            return 2;
+        }  else{
+            return 0;
         }
     }
-
+    public NormalizedRGBA[] getColorsBro(){
+        NormalizedRGBA[] colors = new NormalizedRGBA[4];
+        colors[0]=lLS.getNormalizedColors();
+        colors[1]=rLS.getNormalizedColors();
+        colors[2]=lRS.getNormalizedColors();
+        colors[3]=rRS.getNormalizedColors();
+        return colors;
+    }
 
 
 
