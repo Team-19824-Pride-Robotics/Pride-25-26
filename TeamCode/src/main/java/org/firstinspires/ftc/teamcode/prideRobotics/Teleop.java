@@ -14,28 +14,29 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.flywheel;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.colorSensors;
+
 @TeleOp
 @Configurable
 public class Teleop extends LinearOpMode {
-    //mech subsystem declarations
+//mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
-    private ballKickers ballKickers;
+   private ballKickers ballKickers;
     private limelight limelight;
     private transferChanneler transferChanneler;
-    private colorSensors colorSensors;
-    //fun variables
-    private int[][] balls;
+//fun variables
+    private static double strafeFix=1; //todo: set value
+    private static double driveTolerance=0.01; //todo: set value
     private static double ejectVel = 600;
     private static double defaultLaunchVel =1000;
+    private static double spinUpPower = 1;
     private static double UpRightPos=185;
     private static double UpLeftPos=240;
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private boolean launch=false;
     private double launchVel=0;
-    private boolean motifMode=false; //decides whether robot launches for efficiency or motifs
+    private double DownRightPos=309;
+    private double DownLeftPos=114;
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
@@ -83,7 +84,6 @@ public class Teleop extends LinearOpMode {
         flywheel = new flywheel(hardwareMap);
         ballKickers = new ballKickers(hardwareMap);
         transferChanneler = new transferChanneler(hardwareMap);
-        colorSensors = new colorSensors(hardwareMap);
 
         //init mechs
         limelight.init();
@@ -92,7 +92,6 @@ public class Teleop extends LinearOpMode {
         ballKickers.retractRight();
         ballKickers.retractLeft();
         transferChanneler.center();
-        balls=colorSensors.getBalls();
 
 
 
@@ -140,37 +139,17 @@ public class Teleop extends LinearOpMode {
             //////////////
 
             //intake
-            intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
+                intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
+
+            //flywheel
+
+            //power calculations
+
+
+
+            //ball kicking
             if(gamepad2.right_bumper){
-                launch=true;
-            }
-            if(launch){
-                balls=colorSensors.getBalls();
-                if(motifMode){
-                    //add code later
-                }else{
-                    if(balls[2][0]!=0){ //if back left is full
-                        if(balls[1][0]!=0){ //if middle left is full
-                            launchLeft=true;
-                        }
-                        else{
-                            launchRight=true;
-                        }
-                    }else if(balls[2][1]!=0){ //if back right is full
-                        launchRight=true;
-                    }
-                }
-            }
-
-
-
-
-
-            //Launcher decision making
-
-            //manual
-            /*if(gamepad2.right_bumper){
-                launchRight=true;
+               launchRight=true;
             }
             if(gamepad2.left_bumper){
                 launchLeft=true;
@@ -179,8 +158,8 @@ public class Teleop extends LinearOpMode {
                 launchLeft=false;
                 launchRight=false;
             }
-            */
-            //Flywheel velocity logic
+
+
             if(launchRight||launchLeft){
                 if(gamepad2.dpad_up){
                     launchVel=ejectVel;
@@ -196,7 +175,7 @@ public class Teleop extends LinearOpMode {
                 launchVel=0;
             }
 
-            //Kicker logic
+
             if(launchRight) {
                 ballKickers.retractLeft();
                 if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
@@ -218,7 +197,24 @@ public class Teleop extends LinearOpMode {
                 ballKickers.retractLeft();
                 launchLeft=false;
             }
+            //Channeler testing
 
+            if(gamepad2.x){
+                transferChanneler.coverLeft();
+            }
+            if(gamepad2.a){
+                transferChanneler.center();
+            }
+            if(gamepad2.b){
+                transferChanneler.coverRight();
+            }
+
+            //update mechs
+            if(gamepad2.x){
+                flywheel.setPower(-spinUpPower);
+            }else {
+                flywheel.update(launchVel);
+            }
             ballKickers.update();
             intake.update();
             transferChanneler.update();
