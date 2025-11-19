@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.flywheel;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler;
-
+import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.colorSensors;
 @TeleOp
 @Configurable
 public class Teleop extends LinearOpMode {
@@ -24,9 +24,9 @@ public class Teleop extends LinearOpMode {
    private ballKickers ballKickers;
     private limelight limelight;
     private transferChanneler transferChanneler;
-//fun variables
-    private static double strafeFix=1; //todo: set value
-    private static double driveTolerance=0.01; //todo: set value
+    private colorSensors colorSensors;
+    //fun variables
+    private int[][] balls;
     private static double ejectVel = 600;
     private static double defaultLaunchVel =1000;
     private static double spinUpPower = 1;
@@ -84,6 +84,7 @@ public class Teleop extends LinearOpMode {
         flywheel = new flywheel(hardwareMap);
         ballKickers = new ballKickers(hardwareMap);
         transferChanneler = new transferChanneler(hardwareMap);
+        colorSensors = new colorSensors(hardwareMap);
 
         //init mechs
         limelight.init();
@@ -175,7 +176,7 @@ public class Teleop extends LinearOpMode {
                 launchVel=0;
             }
 
-
+            //Kicker logic
             if(launchRight) {
                 ballKickers.retractLeft();
                 if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
@@ -197,17 +198,7 @@ public class Teleop extends LinearOpMode {
                 ballKickers.retractLeft();
                 launchLeft=false;
             }
-            //Channeler testing
 
-            if(gamepad2.x){
-                transferChanneler.coverLeft();
-            }
-            if(gamepad2.a){
-                transferChanneler.center();
-            }
-            if(gamepad2.b){
-                transferChanneler.coverRight();
-            }
 
             //update mechs
             if(gamepad2.x){

@@ -15,7 +15,6 @@ public class colorSensors {
     private NormalizedColorSensor leftSensor;
     private NormalizedColorSensor rightSensor;
 
-    public double flywheelVelocity = 0;
 
     public static double redThresh=0;
     public static double blueThresh=0;
@@ -56,12 +55,13 @@ public class colorSensors {
             }
         } else {
             if (colors.green>greenThresh) {
-                return 1;
+                return 2;
             } else {
-                return -1;
+                return 0;
             }
         }
     }
+
 
 
 
