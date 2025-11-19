@@ -26,7 +26,7 @@ public class colorSensors {
             {0,0}
     };
 public NormalizedColorSensor[][] sensorPos;
-    public static double redThresh=0;
+    public static double redThresh=0; //todo: set these values
     public static double blueThresh=0;
     public static double greenThresh=0;
 
@@ -54,6 +54,21 @@ public NormalizedColorSensor[][] sensorPos;
          }
      }
      return ballPos;
+    }
+    public int[] sideSums(){
+        int[][] balls = getBalls();
+        int[] sides = {0,0};
+        for(int i=0; i<2; i++){
+            if(balls[i][0]!=0){
+                sides[0]++;
+            }
+        }
+        for(int i=0; i<2; i++){
+            if(balls[i][2]!=0){
+                sides[1]++;
+            }
+        }
+        return sides;
     }
     public int getColor(int r, int c) {
         NormalizedRGBA colors = sensorPos[r][c].getNormalizedColors();

@@ -35,8 +35,10 @@ public class Teleop extends LinearOpMode {
     private boolean launchRight=false;
     private boolean launch=false;
     private double launchVel=0;
+    private boolean correctConfig=false; //checks if artifacts are in correct configuration
+    private boolean overflow=false; //checks if there are too many artifacts in one side
     private boolean motifMode=false; //decides whether robot launches for efficiency or motifs
-
+    private boolean eject=false;
     //Other stuff
     InterpLUT lut = new InterpLUT();
 
@@ -139,25 +141,53 @@ public class Teleop extends LinearOpMode {
             //Mechansims//
             //////////////
 
+
+
+            //error correction logic
+            if(!motifMode){
+                if(colorSensors.sideSums()[0]+colorSensors.sideSums()[1]>3){
+                    correctConfig=false; //if theres more than 3 artfacts in robot
+                    eject=true;
+                } else{
+                    correctConfig=true;
+                }
+                if(colorSensors.sideSums()[0]>2 || colorSensors.sideSums()[1]>2){
+                    correctConfig=false; //if theres 3 artifacts on one side
+                    overflow=true;
+                    eject=true;
+                } else{
+                    correctConfig=true;
+                    overflow=false;
+                }
+            }
+
+
             //intake
-            intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
-            if(gamepad2.right_bumper){
+            if(!overflow) {
+                intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+            } else{
+                intake.setPower(0);
+            }
+            //launch logic
+            if(gamepad2.right_bumper && !eject){
                 launch=true;
+            }
+            if(eject){
+                if(colorSensors.sideSums()[0]>colorSensors.sideSums()[1]){
+                    //left
+                }else{
+                    //right
+                }
             }
             if(launch){
                 balls=colorSensors.getBalls();
                 if(motifMode){
                     //add code later
                 }else{
-                    if(balls[2][0]!=0){ //if back left is full
-                        if(balls[1][0]!=0){ //if middle left is full
-                            launchLeft=true;
-                        }
-                        else{
-                            launchRight=true;
-                        }
-                    }else if(balls[2][1]!=0){ //if back right is full
-                        launchRight=true;
+                    if(colorSensors.sideSums()[0]>colorSensors.sideSums()[1]){
+                        //left right left
+                    }else{
+                        //right left right
                     }
                 }
             }
