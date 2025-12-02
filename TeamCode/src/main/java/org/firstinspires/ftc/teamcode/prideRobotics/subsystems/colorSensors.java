@@ -52,7 +52,7 @@ public class colorSensors {
         } else if(colorsR.green>greenThresh) {
             return 2;
         }  else{
-            return 0;
+            return lLS.get
         }
     }
     public int getColorRight() {
@@ -78,6 +78,7 @@ public class colorSensors {
             return 0;
         }
     }
+
     public NormalizedRGBA[] getColorsBro(){
         NormalizedRGBA[] colors = new NormalizedRGBA[4];
         colors[0]=lLS.getNormalizedColors();

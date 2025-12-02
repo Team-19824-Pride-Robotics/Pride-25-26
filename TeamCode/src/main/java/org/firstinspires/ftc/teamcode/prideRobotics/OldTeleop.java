@@ -15,19 +15,18 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler;
 import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.colorSensors;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.distanceSensors;
 @TeleOp
 @Configurable
-public class Teleop extends LinearOpMode {
-    //mech subsystem declarations
+public class OldTeleop extends LinearOpMode {
+//mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
-    private ballKickers ballKickers;
+   private ballKickers ballKickers;
     private limelight limelight;
     private transferChanneler transferChanneler;
     private colorSensors colorSensors;
-    private distanceSensors distanceSensors;
     //fun variables
+    private int[][] balls;
     private static double ejectVel = 600;
     private static double defaultLaunchVel =1000;
     private static double spinUpPower = 1;
@@ -35,13 +34,9 @@ public class Teleop extends LinearOpMode {
     private static double UpLeftPos=240;
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private boolean launchE = false;
-    private boolean indexMode = false;
-    private boolean eject = false;
     private double launchVel=0;
     private double DownRightPos=309;
     private double DownLeftPos=114;
-    private int launchQueue = 0;
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
@@ -109,7 +104,9 @@ public class Teleop extends LinearOpMode {
             //drive control
 
 
-
+            if (gamepad1.options) {
+                imu.resetYaw();
+            }
             if(gamepad2.dpad_left){
                 limelight.setPipeline(3);
             }
@@ -143,81 +140,69 @@ public class Teleop extends LinearOpMode {
             //////////////
 
             //intake
-            intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
+                intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
 
-            //indexing selecting
-            if(gamepad2.start){
-                indexMode=true;
+            //flywheel
+
+            //power calculations
+
+
+
+            //ball kicking
+            if(gamepad2.right_bumper){
+               launchRight=true;
+            }
+            if(gamepad2.left_bumper){
+                launchLeft=true;
             }
             if(gamepad2.back){
-                indexMode=false;
+                launchLeft=false;
+                launchRight=false;
             }
 
 
-
-            //ball kicking kickoff
-            if(indexMode) {
-                if (gamepad2.right_bumper) {
-                    launchRight = true;
-                }
-                if (gamepad2.left_bumper) {
-                    launchLeft = true;
-                }
-                if(gamepad2.b){
-                    launchLeft = false;
-                    launchRight = false;
-                }
-                launchE=false;
-            }
-            else{
-                if(gamepad2.right_bumper || gamepad2.left_bumper){
-                    launchE=true;
-                    launchQueue=3;
-                }
-                if(gamepad2.b){
-                    launchE=false;
-                }
-            }
-
-            //launch logic
-            if(launchRight||launchLeft){  //todo: test always running launcher
+//            if(launchRight||launchLeft){ todo: test always running launcher
+//                if(gamepad2.dpad_up){
+//                    launchVel=ejectVel;
+//                }
+//                else if(limelight.getDistance()==-1){
+//                    launchVel=defaultLaunchVel;
+//                }else{
+//
+//                    launchVel=lut.get(limelight.getDistance());
+//                }
+//            }
+//            else{
+//                launchVel=0;
+//            }
                 if(limelight.getDistance()==-1){
                     launchVel=defaultLaunchVel;
                 }else{
                     launchVel=lut.get(limelight.getDistance());
                 }
-            }
-            else{
-                launchVel=0;
-            }
-
             //Kicker logic
             if(launchRight) {
                 ballKickers.retractLeft();
-                if ((flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) && ballKickers.getRightPos()<DownRightPos) {
-                    if(launchQueue=1) {
-                        if()
-                    } else{
-                        ballKickers.kickRight();
-                    }
+                if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
+                    ballKickers.kickRight();
                 }
             }
+            if(launchRight&&ballKickers.getRightPos()>UpRightPos){
+                ballKickers.retractRight();
+                launchRight=false;
+            }
+
             if(launchLeft) {
                 ballKickers.retractRight();
                 if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
                     ballKickers.kickLeft();
                 }
             }
-
-            //Retraction logic
             if(launchLeft&&ballKickers.getLeftPos()<UpLeftPos){
                 ballKickers.retractLeft();
                 launchLeft=false;
             }
-            if(launchRight&&ballKickers.getRightPos()>UpRightPos){
-                ballKickers.retractRight();
-                launchRight=false;
-            }
+
 
             //update mechs
             if(gamepad2.x){
