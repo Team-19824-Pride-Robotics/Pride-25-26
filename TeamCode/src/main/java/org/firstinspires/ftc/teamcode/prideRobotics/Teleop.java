@@ -35,7 +35,7 @@ public class Teleop extends LinearOpMode {
     private static double UpLeftPos=240;
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private boolean launchE = false;
+    private boolean launchE = false; //kickstarts efficient launch sequence
     private boolean indexMode = false;
     private boolean eject = false;
     private double launchVel=0;
@@ -176,55 +176,102 @@ public class Teleop extends LinearOpMode {
                 }
                 if(gamepad2.b){
                     launchE=false;
+                    launchQueue=0;
                 }
             }
 
             //launch logic
-            if(launchRight||launchLeft){  //todo: test always running launcher
-                if(limelight.getDistance()==-1){
-                    launchVel=defaultLaunchVel;
-                }else{
-                    launchVel=lut.get(limelight.getDistance());
-                }
-            }
-            else{
-                launchVel=0;
+
+            if(limelight.getDistance()==-1){
+                launchVel=defaultLaunchVel;
+            }else{
+                launchVel=lut.get(limelight.getDistance());
             }
 
-            //Kicker logic
-            if(launchRight) {
-                ballKickers.retractLeft();
-                if ((flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) && ballKickers.getRightPos()<DownRightPos) {
-                    if(launchQueue=1) {
-                        if()
+
+
+            //Kicker logic for non index mode
+            if(!indexMode) {
+                //Kickstart first launch
+                if(launchE){
+                    if(distanceSensors.getSide()==1){
+                        launchRight=true;
+                        launchLeft=false;
                     } else{
+                        launchRight=false;
+                        launchLeft=true;
+                    }
+                    launchE=false;
+                }
+
+                //Launch logic
+                if (launchRight) {
+                    ballKickers.retractLeft();
+                    if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && ballKickers.getRightPos() < DownRightPos) {
+                        if (launchQueue == 1) {
+                            if (colorSensors.getColorRight() != -1) {
+                                ballKickers.kickRight();
+                            }
+                        } else {
+                            ballKickers.kickRight();
+                        }
+                    }
+                }
+                if (launchLeft) {
+                    ballKickers.retractRight();
+                    if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && ballKickers.getLeftPos() < DownLeftPos) {
+                        if (launchQueue == 1) {
+                            if (colorSensors.getColorLeft() != -1) {
+                                ballKickers.kickLeft();
+                            }
+                        } else {
+                            ballKickers.kickLeft();
+                        }
+                    }
+                }
+
+                //Retraction logic
+                if (launchLeft && ballKickers.getLeftPos() < UpLeftPos) {
+                    ballKickers.retractLeft();
+                    launchLeft = false;
+                    if(launchQueue>0){
+                        launchRight=true;
+                        launchQueue--;
+                    }
+                }
+                if (launchRight && ballKickers.getRightPos() > UpRightPos) {
+                    ballKickers.retractRight();
+                    launchRight = false;
+                    if(launchQueue>0){
+                        launchLeft=true;
+                        launchQueue--;
+                    }
+                }
+            } else{
+                if(launchRight) {
+                    ballKickers.retractLeft();
+                    if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
                         ballKickers.kickRight();
                     }
                 }
-            }
-            if(launchLeft) {
-                ballKickers.retractRight();
-                if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
-                    ballKickers.kickLeft();
+                if(launchRight&&ballKickers.getRightPos()>UpRightPos){
+                    ballKickers.retractRight();
+                    launchRight=false;
+                }
+
+                if(launchLeft) {
+                    ballKickers.retractRight();
+                    if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
+                        ballKickers.kickLeft();
+                    }
+                }
+                if(launchLeft&&ballKickers.getLeftPos()<UpLeftPos){
+                    ballKickers.retractLeft();
+                    launchLeft=false;
                 }
             }
-
-            //Retraction logic
-            if(launchLeft&&ballKickers.getLeftPos()<UpLeftPos){
-                ballKickers.retractLeft();
-                launchLeft=false;
-            }
-            if(launchRight&&ballKickers.getRightPos()>UpRightPos){
-                ballKickers.retractRight();
-                launchRight=false;
-            }
-
             //update mechs
-            if(gamepad2.x){
-                flywheel.setPower(-spinUpPower);
-            }else {
-                flywheel.update(launchVel);
-            }
+            flywheel.update(launchVel);
             ballKickers.update();
             intake.update();
             transferChanneler.update();

@@ -52,7 +52,7 @@ public class colorSensors {
         } else if(colorsR.green>greenThresh) {
             return 2;
         }  else{
-            return lLS.get
+            return -1;
         }
     }
     public int getColorRight() {
