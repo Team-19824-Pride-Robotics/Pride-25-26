@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.distanceSensors;
 public class distanceSensorTuner extends LinearOpMode {
     private distanceSensors distanceSensors;
     double[] distances;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -26,4 +27,5 @@ public class distanceSensorTuner extends LinearOpMode {
 
         if (isStopRequested()) return;
 
+    }
 }
