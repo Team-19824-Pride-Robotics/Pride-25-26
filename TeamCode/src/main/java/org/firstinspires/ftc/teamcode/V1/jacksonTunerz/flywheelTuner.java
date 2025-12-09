@@ -1,17 +1,11 @@
-package org.firstinspires.ftc.teamcode.prideRobotics.jacksonTunerz;
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.arcrobotics.ftclib.util.InterpLUT;
+package org.firstinspires.ftc.teamcode.V1.jacksonTunerz;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.bylazar.telemetry.PanelsTelemetry;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.colorSensors;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.flywheel;
+import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
 
 @TeleOp
 @Configurable

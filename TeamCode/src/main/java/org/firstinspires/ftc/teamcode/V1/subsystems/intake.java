@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
+package org.firstinspires.ftc.teamcode.V1.subsystems;
 
-import com.arcrobotics.ftclib.controller.PDController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;

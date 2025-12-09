@@ -1,13 +1,10 @@
-package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
+package org.firstinspires.ftc.teamcode.V1.subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @Configurable
 public class ballKickers {

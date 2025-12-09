@@ -1,9 +1,6 @@
-package org.firstinspires.ftc.teamcode.prideRobotics.subsystems;
+package org.firstinspires.ftc.teamcode.V1.subsystems;
 
-import com.arcrobotics.ftclib.controller.PDController;
 import com.bylazar.configurables.annotations.Configurable;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -52,7 +49,7 @@ public class colorSensors {
         } else if(colorsR.green>greenThresh) {
             return 2;
         }  else{
-            return 0;
+            return -1;
         }
     }
     public int getColorRight() {
@@ -78,6 +75,7 @@ public class colorSensors {
             return 0;
         }
     }
+
     public NormalizedRGBA[] getColorsBro(){
         NormalizedRGBA[] colors = new NormalizedRGBA[4];
         colors[0]=lLS.getNormalizedColors();

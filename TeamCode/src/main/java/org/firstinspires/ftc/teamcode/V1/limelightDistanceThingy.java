@@ -1,18 +1,10 @@
-package org.firstinspires.ftc.teamcode.prideRobotics;
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.arcrobotics.ftclib.util.InterpLUT;
+package org.firstinspires.ftc.teamcode.V1;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.intake;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.flywheel;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.limelight;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler;
+import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 
 @TeleOp
 @Configurable
