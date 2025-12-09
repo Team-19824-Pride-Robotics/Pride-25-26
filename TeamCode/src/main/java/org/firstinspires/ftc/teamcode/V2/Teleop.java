@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.prideRobotics;
+package org.firstinspires.ftc.teamcode.V2;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -9,13 +9,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 
 
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.intake;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.flywheel;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.ballKickers;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.limelight;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.transferChanneler;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.colorSensors;
-import org.firstinspires.ftc.teamcode.prideRobotics.subsystems.distanceSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
+import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
+import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
+import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
+import org.firstinspires.ftc.teamcode.V1.subsystems.transferChanneler;
+import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
 @TeleOp
 @Configurable
 public class Teleop extends LinearOpMode {
