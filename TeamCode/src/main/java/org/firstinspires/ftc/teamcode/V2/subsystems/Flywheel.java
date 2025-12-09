@@ -9,6 +9,9 @@ import dev.nextftc.hardware.powerable.SetPower;
 
 public class Flywheel implements Subsystem {
     public static final Flywheel INSTANCE = new Flywheel();
+    private static double P = 0.005;
+    private static double I = 0;
+    private static double D = 0;
     private Flywheel() { }
 
     private final MotorGroup flywheelMotors = new MotorGroup(
@@ -17,7 +20,7 @@ public class Flywheel implements Subsystem {
     );
 
     private final ControlSystem flywheelControlSystem = ControlSystem.builder()
-            .velPid(0.005, 0, 0)
+            .velPid(P, I, D)
             .build();
 
     @Override

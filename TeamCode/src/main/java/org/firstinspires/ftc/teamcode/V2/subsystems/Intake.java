@@ -26,6 +26,6 @@ public class Intake implements Subsystem {
     }
 
     public void setPower(double power) {
-        new RunToVelocity(flywheelControlSystem, velocity).schedule();
+        new SetPower(intakeMotor, power).schedule();
     }
 }

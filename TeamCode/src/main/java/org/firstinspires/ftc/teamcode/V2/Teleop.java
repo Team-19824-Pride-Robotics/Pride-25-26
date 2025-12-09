@@ -9,22 +9,21 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 
 
-import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
-import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
-import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
-import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
-import org.firstinspires.ftc.teamcode.V1.subsystems.transferChanneler;
-import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
-import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
+import org.firstinspires.ftc.teamcode.V2.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.V2.subsystems.Flywheel;
+import org.firstinspires.ftc.teamcode.V2.subsystems.BallKickers;
+import org.firstinspires.ftc.teamcode.V2.subsystems.Limelight;
+import org.firstinspires.ftc.teamcode.V2.subsystems.ColorSensors;
+import org.firstinspires.ftc.teamcode.V2.subsystems.DistanceSensors;
 @TeleOp
 @Configurable
 public class Teleop extends LinearOpMode {
     //mech subsystem declarations
-    private intake intake;
-    private flywheel flywheel;
-    private ballKickers ballKickers;
-    private limelight limelight;
-    private transferChanneler transferChanneler;
+    private Intake intake;
+    private Flywheel flywheel;
+    private BallKickers ballKickers;
+    private Limelight limelight;
+    private TransferChanneler transferChanneler;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
     //fun variables
