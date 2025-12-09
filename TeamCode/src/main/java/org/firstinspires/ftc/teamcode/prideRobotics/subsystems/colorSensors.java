@@ -35,8 +35,8 @@ public class colorSensors {
     public int getColorLeft() {
         NormalizedRGBA colorsL = lLS.getNormalizedColors();
         NormalizedRGBA colorsR = rLS.getNormalizedColors();
-        if ((colorsL.red + colorsL.blue) / 2 > colorsL.green) {
-            if (colorsL.red > redThresh && colorsL.blue > blueThresh) {
+        if (colorsL.blue > colorsL.green) {
+            if (colorsL.blue > blueThresh) {
                 return 1;
             } else {
                 return 0;
@@ -58,14 +58,14 @@ public class colorSensors {
     public int getColorRight() {
         NormalizedRGBA colorsL = lRS.getNormalizedColors();
         NormalizedRGBA colorsR = rRS.getNormalizedColors();
-        if ((colorsL.red + colorsL.blue) / 2 > colorsL.green) {
-            if (colorsL.red > redThresh && colorsL.blue > blueThresh) {
+        if (colorsL.blue > colorsL.green) {
+            if (colorsL.blue > blueThresh) {
                 return 1;
             } else {
                 return 0;
             }
-        } else if ((colorsR.red + colorsR.blue) / 2 > colorsR.green){
-            if (colorsR.red > redThresh && colorsR.blue > blueThresh) {
+        } else if (colorsR.blue > colorsR.green){
+            if (colorsR.blue > blueThresh) {
                 return 1;
             } else {
                 return 0;
