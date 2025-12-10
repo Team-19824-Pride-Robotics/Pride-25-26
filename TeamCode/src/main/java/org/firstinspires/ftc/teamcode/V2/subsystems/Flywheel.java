@@ -32,8 +32,10 @@ public class Flywheel implements Subsystem {
     public void periodic() {
         // optional telemetry or monitoring
     }
-
-    public void setVelocity(int velocity) {
+    public double getVelocity(){
+        return flywheelMotors.getVelocity();
+    }
+    public void update(int velocity) {
         new RunToVelocity(flywheelControlSystem, velocity).schedule();
     }
 }

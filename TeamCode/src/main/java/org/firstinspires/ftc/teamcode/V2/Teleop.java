@@ -23,9 +23,9 @@ public class Teleop extends LinearOpMode {
     private Flywheel flywheel;
     private BallKickers ballKickers;
     private Limelight limelight;
-    private TransferChanneler transferChanneler;
-    private colorSensors colorSensors;
-    private distanceSensors distanceSensors;
+
+    private ColorSensors colorSensors;
+    private DistanceSensors distanceSensors;
     //fun variables
     private static double ejectVel = 600;
     private static double defaultLaunchVel =1000;
@@ -87,16 +87,14 @@ public class Teleop extends LinearOpMode {
         limelight = new limelight(hardwareMap);
         flywheel = new flywheel(hardwareMap);
         ballKickers = new ballKickers(hardwareMap);
-        transferChanneler = new transferChanneler(hardwareMap);
         colorSensors = new colorSensors(hardwareMap);
 
         //init mechs
         limelight.init();
         limelight.setPipeline(3);
-        flywheel.init();
-        ballKickers.retractRight();
-        ballKickers.retractLeft();
-        transferChanneler.center();
+        flywheel.initialize();
+        ballKickers.initialize();
+        intake.initialize();
 
 
 
