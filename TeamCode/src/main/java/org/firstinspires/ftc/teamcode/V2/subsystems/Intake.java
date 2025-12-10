@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.V2.subsystems;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
 import dev.nextftc.control.ControlSystem;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.hardware.controllable.MotorGroup;
@@ -9,12 +11,11 @@ import dev.nextftc.hardware.powerable.SetPower;
 
 public class Intake implements Subsystem {
     public static final Intake INSTANCE = new Intake();
-    private Intake() { }
-
-    private final MotorEx intakeMotor = new MotorEx("i");
-
-
-
+    MotorEx intakeMotor;
+    private double intakePower=0;
+    public Intake() {
+         intakeMotor = new MotorEx("i");
+    }
     @Override
     public void initialize() {
         new SetPower(intakeMotor, 0).schedule();
@@ -25,7 +26,10 @@ public class Intake implements Subsystem {
         // optional telemetry or monitoring
     }
 
-    public void setPower(double power) {
-        new SetPower(intakeMotor, power).schedule();
+    public void update() {
+        new SetPower(intakeMotor, intakePower).schedule();
+    }
+    public void setPower(double power){
+        intakePower=power;
     }
 }

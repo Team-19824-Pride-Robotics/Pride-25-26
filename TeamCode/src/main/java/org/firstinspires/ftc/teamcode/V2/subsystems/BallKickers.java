@@ -11,13 +11,18 @@ import dev.nextftc.hardware.powerable.SetPower;
 
 public class BallKickers {
     public static final BallKickers INSTANCE = new BallKickers();
-    private BallKickers() { }
+    FeedbackServoEx leftBallKicker;
+    FeedbackServoEx rightBallKicker;
+
+    public BallKickers() {
+        leftBallKicker = new FeedbackServoEx("lBKE", "lBK", 0.01);
+        rightBallKicker = new FeedbackServoEx("rBKE", "rBK", 0.01);
+    }
     public static double downLeftPosition = 0.8;
     public static double upLeftPosition = 0.6;
     public static double downRightPosition = 0.85;
     public static double upRightPosition = 0.45;
-    FeedbackServoEx leftBallKicker = new FeedbackServoEx("lBKE", "lBK", 0.01);
-    FeedbackServoEx rightBallKicker = new FeedbackServoEx("rBKE", "rBK", 0.01);
+
     private final ControlSystem flywheelControlSystem = ControlSystem.builder()
             .velPid(0.005, 0, 0)
             .build();

@@ -12,13 +12,13 @@ public class Flywheel implements Subsystem {
     private static double P = 0.005;
     private static double I = 0;
     private static double D = 0;
-    private Flywheel() { }
-
-    private final MotorGroup flywheelMotors = new MotorGroup(
-            new MotorEx("fW"),
-            new MotorEx("fWB")
-    );
-
+    private MotorGroup flywheelMotors;
+    public Flywheel() {
+        flywheelMotors = new MotorGroup(
+                new MotorEx("fW"),
+                new MotorEx("fWB")
+        );
+    }
     private final ControlSystem flywheelControlSystem = ControlSystem.builder()
             .velPid(P, I, D)
             .build();
@@ -35,7 +35,7 @@ public class Flywheel implements Subsystem {
     public double getVelocity(){
         return flywheelMotors.getVelocity();
     }
-    public void update(int velocity) {
+    public void update(double velocity) {
         new RunToVelocity(flywheelControlSystem, velocity).schedule();
     }
 }

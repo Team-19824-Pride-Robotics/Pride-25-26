@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 import org.firstinspires.ftc.teamcode.V2.subsystems.Intake;
@@ -44,7 +45,7 @@ public class Teleop extends LinearOpMode {
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
-
+    private ElapsedTime runtime = new ElapsedTime();
 
 
     @Override
@@ -83,11 +84,11 @@ public class Teleop extends LinearOpMode {
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Declare mechs
-        intake = new intake(hardwareMap);
-        limelight = new limelight(hardwareMap);
-        flywheel = new flywheel(hardwareMap);
-        ballKickers = new ballKickers(hardwareMap);
-        colorSensors = new colorSensors(hardwareMap);
+        intake = new Intake();
+        limelight = new Limelight(hardwareMap);
+        flywheel = new Flywheel();
+        ballKickers = new BallKickers();
+        colorSensors = new ColorSensors(hardwareMap);
 
         //init mechs
         limelight.init();
@@ -269,16 +270,18 @@ public class Teleop extends LinearOpMode {
             }
             //update mechs
             flywheel.update(launchVel);
-            ballKickers.update();
             intake.update();
-            transferChanneler.update();
+
 
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());
-            telemetry.addData("Right kciker pos: ", ballKickers.getRightPos());
-            telemetry.addData("Desired pos: ", ballKickers.getRightDesiredPos());
+            telemetry.addData("Right kicker pos: ", ballKickers.getRightPos());
+            telemetry.addData("Left kicker pos: ", ballKickers.getLeftPos());
+            telemetry.addData("Extra Count", distanceSensors.getCount());
+            telemetry.addData("Side", distanceSensors.getSide());
+            telemetry.addData("runtime", runtime.seconds());
             telemetry.update();
 
         }

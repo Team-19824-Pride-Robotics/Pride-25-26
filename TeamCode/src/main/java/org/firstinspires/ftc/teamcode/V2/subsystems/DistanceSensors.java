@@ -19,8 +19,8 @@ public class DistanceSensors {
     private static final double MAX_VOLTS = 3.3;
     private static final double MAX_DISTANCE_MM = 1000.0;
     public DistanceSensors(HardwareMap hardwareMap) {
-        lS = hardwareMap.get(AnalogInput.class, "lS");
-        rS = hardwareMap.get(AnalogInput.class, "rS");
+        lS = hardwareMap.get(AnalogInput.class, "lDS");
+        rS = hardwareMap.get(AnalogInput.class, "rDS");
 
 
     }
