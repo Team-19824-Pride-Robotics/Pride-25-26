@@ -1,10 +1,17 @@
 package org.firstinspires.ftc.teamcode.V2;
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.pathConstraints;
+
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -39,13 +46,21 @@ public class Teleop extends LinearOpMode {
     private ColorSensors colorSensors;
     private DistanceSensors distanceSensors;
     //fun variables
+    //Flywheel Velocities
     private static double ejectVel = 600;
     private static double defaultLaunchVel =1000;
-    private static double spinUpPower = 1;
+
+    //Kicker positions
     private static double UpRightPos=185;
     private static double UpLeftPos=240;
+    private double DownRightPos=309;
+    private double DownLeftPos=114;
+
+    //Alliance color logic
     private boolean allianceSelected=false;
     private boolean redAlliance=false;
+
+    //Launching logic
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private boolean launchE = false; //kickstarts efficient launch sequence
@@ -53,10 +68,11 @@ public class Teleop extends LinearOpMode {
     private boolean eject = false;
     private boolean intaking=false;
     private double launchVel=0;
-    private double DownRightPos=309;
-    private double DownLeftPos=114;
     private int launchQueue = 0;
 
+    //Park positions
+    private static double parkX=0;
+    private static double parkY=0;
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
@@ -139,25 +155,45 @@ public class Teleop extends LinearOpMode {
             );
             //Aim at goal
             if (gamepad1.y) {
-                // Pick target coordinates based on alliance
                 double targetX = redAlliance ? 144 : 0;
                 double targetY = 144;
 
-                // Current robot position
                 double robotX = follower.getPose().getX();
                 double robotY = follower.getPose().getY();
 
-                // Vector from robot to target
                 double dx = targetX - robotX;
                 double dy = targetY - robotY;
 
-                // Angle to target in radians
                 double headingToTarget = Math.atan2(dy, dx);
 
-                // Command the robot to rotate to that heading
-                follower.turnTo(headingToTarget);
+                PathChain turnChain = follower.pathBuilder()
+                        .setLinearHeadingInterpolation(follower.getHeading(), headingToTarget)
+                        .build();
+
+                follower.followPath(turnChain);
 
             }
+                if (gamepad1.a) { // Press A to auto-move
+                    Pose targetPose = new Pose(100, 50, Math.toRadians(90));
+
+                    PathChain pathChain = follower.pathBuilder()
+                            .addPath(
+                                    new Path(
+                                            new BezierLine(
+                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                    new Pose(parkX, parkY)                                         // end
+                                            ),
+                                            pathConstraints
+                                    )
+                            )
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
+                            .build();
+
+                    follower.followPath(pathChain);
+                }
+
+
+
 
 
 
