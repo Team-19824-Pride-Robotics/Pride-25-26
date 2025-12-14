@@ -1,6 +1,10 @@
 package org.firstinspires.ftc.teamcode.V2;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -16,9 +20,16 @@ import org.firstinspires.ftc.teamcode.V2.subsystems.BallKickers;
 import org.firstinspires.ftc.teamcode.V2.subsystems.Limelight;
 import org.firstinspires.ftc.teamcode.V2.subsystems.ColorSensors;
 import org.firstinspires.ftc.teamcode.V2.subsystems.DistanceSensors;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 @TeleOp
 @Configurable
 public class Teleop extends LinearOpMode {
+    //Pedro stuff
+    private Follower follower;
+    public static Pose startingPose; // optional starting pose
+    private TelemetryManager telemetryM;
+
     //mech subsystem declarations
     private Intake intake;
     private Flywheel flywheel;
@@ -33,15 +44,19 @@ public class Teleop extends LinearOpMode {
     private static double spinUpPower = 1;
     private static double UpRightPos=185;
     private static double UpLeftPos=240;
+    private boolean allianceSelected=false;
+    private boolean redAlliance=false;
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private boolean launchE = false; //kickstarts efficient launch sequence
     private boolean indexMode = false;
     private boolean eject = false;
+    private boolean intaking=false;
     private double launchVel=0;
     private double DownRightPos=309;
     private double DownLeftPos=114;
     private int launchQueue = 0;
+
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
@@ -52,7 +67,7 @@ public class Teleop extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
 
-        //Intep table setup
+        //Interp table setup
         lut.add(45, 950);
         lut.add(48, 1000);
         lut.add(56, 1100);
@@ -68,20 +83,6 @@ public class Teleop extends LinearOpMode {
 
         lut.createLUT();
 
-        // Declare motor ok
-        // Absolutely yes make ID's match configuration
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("fLD");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("bLD");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("fRD");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("bRD");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-        imu.initialize(parameters);
-        //reverse drive motors
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Declare mechs
         intake = new Intake();
@@ -89,6 +90,7 @@ public class Teleop extends LinearOpMode {
         flywheel = new Flywheel();
         ballKickers = new BallKickers();
         colorSensors = new ColorSensors(hardwareMap);
+        distanceSensors= new DistanceSensors(hardwareMap);
 
         //init mechs
         limelight.init();
@@ -97,52 +99,83 @@ public class Teleop extends LinearOpMode {
         ballKickers.initialize();
         intake.initialize();
 
-
+        //init pedro
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        follower.update();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        while(!allianceSelected){
+            telemetry.addData("Select alliance with Dpad","");
+            telemetry.addData("Left=Blue","");
+            telemetry.addData("Right=Red","");
+            if(gamepad1.dpad_right){
+                redAlliance=true;
+                allianceSelected=true;
+                limelight.setPipeline(3);
+            } if(gamepad1.dpad_left){
+                redAlliance=false;
+                allianceSelected=true;
+                limelight.setPipeline(4);
+            }
+            telemetry.update();
+        }
 
         waitForStart();
 
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
+
+
             //drive control
+            follower.update();
+            telemetryM.update();
 
+            follower.setTeleOpDrive(
+                    -gamepad1.left_stick_y,   // forward/back
+                    -gamepad1.left_stick_x,   // strafe
+                    -gamepad1.right_stick_x,  // rotation
+                    false                     // field-centric
+            );
+            //Aim at goal
+            if (gamepad1.y) {
+                // Pick target coordinates based on alliance
+                double targetX = redAlliance ? 144 : 0;
+                double targetY = 144;
 
+                // Current robot position
+                double robotX = follower.getPose().getX();
+                double robotY = follower.getPose().getY();
 
-            if(gamepad2.dpad_left){
-                limelight.setPipeline(3);
+                // Vector from robot to target
+                double dx = targetX - robotX;
+                double dy = targetY - robotY;
+
+                // Angle to target in radians
+                double headingToTarget = Math.atan2(dy, dx);
+
+                // Command the robot to rotate to that heading
+                follower.turnTo(headingToTarget);
+
             }
-            if(gamepad2.dpad_right){
-                limelight.setPipeline(4);
-            }
 
 
-            double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
-            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
-            double rx = gamepad1.right_stick_x;
 
-            // Denominator is the largest motor power (absolute value) or 1
-            // This ensures all the powers maintain the same ratio,
-            // but only if at least one is out of the range [-1, 1]
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (y + x + rx) / denominator;
-            double backLeftPower = (y - x + rx) / denominator;
-            double frontRightPower = (y - x - rx) / denominator;
-            double backRightPower = (y + x - rx) / denominator;
-
-
-            if(!gamepad1.a) {
-                frontLeftMotor.setPower(frontLeftPower * (1 - gamepad1.right_trigger) * 0.7);
-                backLeftMotor.setPower(backLeftPower * (1 - gamepad1.right_trigger) * 0.7);
-                frontRightMotor.setPower(frontRightPower * (1 - gamepad1.right_trigger) * 0.7);
-                backRightMotor.setPower(backRightPower * (1 - gamepad1.right_trigger) * 0.7);
-            }
             //////////////
             //Mechansims//
             //////////////
 
             //intake
-            intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
-
+            if(gamepad2.right_trigger>0.1 || gamepad2.left_trigger>0.1) {
+                intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+                intaking=true;
+            }
+            if(intaking && gamepad2.right_trigger<0.1 && gamepad2.left_trigger<0.1){
+                if(distanceSensors.getCount()>1){
+                    eject=true;
+                }
+                intaking=false;
+            }
             //indexing selecting
             if(gamepad2.start){
                 indexMode=true;
@@ -154,125 +187,128 @@ public class Teleop extends LinearOpMode {
 
 
             //ball kicking kickoff
-            if(indexMode) {
-                if (gamepad2.right_bumper) {
-                    launchRight = true;
-                }
-                if (gamepad2.left_bumper) {
-                    launchLeft = true;
-                }
-                if(gamepad2.b){
-                    launchLeft = false;
-                    launchRight = false;
-                }
-                launchE=false;
-            }
-            else{
-                if(gamepad2.right_bumper || gamepad2.left_bumper){
-                    launchE=true;
-                    launchQueue=3;
-                }
-                if(gamepad2.b){
-                    launchE=false;
-                    launchQueue=0;
-                }
-            }
 
-            //launch logic
-
-            if(limelight.getDistance()==-1){
-                launchVel=defaultLaunchVel;
-            }else{
-                launchVel=lut.get(limelight.getDistance());
-            }
-
-
-
-            //Kicker logic for non index mode
-            if(!indexMode) {
-                //Kickstart first launch
-                if(launchE){
-                    if(distanceSensors.getSide()==1){
-                        launchRight=true;
-                        launchLeft=false;
-                    } else{
-                        launchRight=false;
-                        launchLeft=true;
+                if (indexMode) {
+                    if (gamepad2.right_bumper) {
+                        launchRight = true;
                     }
-                    launchE=false;
+                    if (gamepad2.left_bumper) {
+                        launchLeft = true;
+                    }
+                    if (gamepad2.b) {
+                        launchLeft = false;
+                        launchRight = false;
+                    }
+                    launchE = false;
+                } else if (eject) {
+                    launchLeft=true;
+                    eject=false;
+                } else {
+                    if (gamepad2.right_bumper || gamepad2.left_bumper) {
+                        launchE = true;
+                        launchQueue = 3;
+                    }
+                    if (gamepad2.b) {
+                        launchE = false;
+                        launchQueue = 0;
+                    }
                 }
 
-                //Launch logic
-                if (launchRight) {
-                    ballKickers.retractLeft();
-                    if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && ballKickers.getRightPos() < DownRightPos) {
-                        if (launchQueue == 1) {
-                            if (colorSensors.getColorRight() != -1) {
+                //launch logic
+                if(!eject) {
+                    if (limelight.getDistance() == -1) {
+                        launchVel = defaultLaunchVel;
+                    } else {
+                        launchVel = lut.get(limelight.getDistance());
+                    }
+                } else{
+                    launchVel=ejectVel;
+                }
+
+                //Kicker logic for non index mode
+                if (!indexMode || !eject) {
+                    //Kickstart first launch
+                    if (launchE) {
+                        if (distanceSensors.getSide() == 1) {
+                            launchRight = true;
+                            launchLeft = false;
+                        } else {
+                            launchRight = false;
+                            launchLeft = true;
+                        }
+                        launchE = false;
+                    }
+
+                    //Launch logic
+                    if (launchRight) {
+                        ballKickers.retractLeft();
+                        if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && ballKickers.getRightPos() < DownRightPos) {
+                            if (launchQueue == 1) {
+                                ballKickers.kickRight();
+                                ballKickers.kickLeft();
+                            } else {
                                 ballKickers.kickRight();
                             }
-                        } else {
+                        }
+                    }
+                    if (launchLeft) {
+                        ballKickers.retractRight();
+                        if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && ballKickers.getLeftPos() < DownLeftPos) {
+                            if (launchQueue == 1) {
+                                ballKickers.kickRight();
+                                ballKickers.kickLeft();
+                            } else {
+                                ballKickers.kickLeft();
+                            }
+                        }
+                    }
+
+                    //Retraction logic
+                    if (launchLeft && ballKickers.getLeftPos() < UpLeftPos) {
+                        ballKickers.retractLeft();
+                        launchLeft = false;
+                        if (launchQueue > 0) {
+                            launchRight = true;
+                            launchQueue--;
+                        }
+                    }
+                    if (launchRight && ballKickers.getRightPos() > UpRightPos) {
+                        ballKickers.retractRight();
+                        launchRight = false;
+                        if (launchQueue > 0) {
+                            launchLeft = true;
+                            launchQueue--;
+                        }
+                    }
+                } else {
+                    if (launchRight) {
+                        ballKickers.retractLeft();
+                        if (flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40  && ballKickers.getRightPos() < DownRightPos) {
                             ballKickers.kickRight();
                         }
                     }
-                }
-                if (launchLeft) {
-                    ballKickers.retractRight();
-                    if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && ballKickers.getLeftPos() < DownLeftPos) {
-                        if (launchQueue == 1) {
-                            if (colorSensors.getColorLeft() != -1) {
-                                ballKickers.kickLeft();
-                            }
-                        } else {
+                    if (launchRight && ballKickers.getRightPos() > UpRightPos) {
+                        ballKickers.retractRight();
+                        launchRight = false;
+                    }
+
+                    if (launchLeft) {
+                        ballKickers.retractRight();
+                        if (flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40  && ballKickers.getLeftPos() < DownLeftPos) {
                             ballKickers.kickLeft();
                         }
                     }
+                    if (launchLeft && ballKickers.getLeftPos() < UpLeftPos) {
+                        ballKickers.retractLeft();
+                        launchLeft = false;
+                    }
                 }
 
-                //Retraction logic
-                if (launchLeft && ballKickers.getLeftPos() < UpLeftPos) {
-                    ballKickers.retractLeft();
-                    launchLeft = false;
-                    if(launchQueue>0){
-                        launchRight=true;
-                        launchQueue--;
-                    }
-                }
-                if (launchRight && ballKickers.getRightPos() > UpRightPos) {
-                    ballKickers.retractRight();
-                    launchRight = false;
-                    if(launchQueue>0){
-                        launchLeft=true;
-                        launchQueue--;
-                    }
-                }
-            } else{
-                if(launchRight) {
-                    ballKickers.retractLeft();
-                    if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
-                        ballKickers.kickRight();
-                    }
-                }
-                if(launchRight&&ballKickers.getRightPos()>UpRightPos){
-                    ballKickers.retractRight();
-                    launchRight=false;
-                }
-
-                if(launchLeft) {
-                    ballKickers.retractRight();
-                    if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
-                        ballKickers.kickLeft();
-                    }
-                }
-                if(launchLeft&&ballKickers.getLeftPos()<UpLeftPos){
-                    ballKickers.retractLeft();
-                    launchLeft=false;
-                }
-            }
             //update mechs
             flywheel.update(launchVel);
             intake.update();
 
-
+            //Basic telemetry
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
@@ -283,6 +319,11 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Side", distanceSensors.getSide());
             telemetry.addData("runtime", runtime.seconds());
             telemetry.update();
+
+            //Panels telemetry
+            // Debug telemetry
+            telemetryM.debug("position", follower.getPose());
+            telemetryM.debug("velocity", follower.getVelocity());
 
         }
     }

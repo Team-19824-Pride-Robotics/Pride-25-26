@@ -34,12 +34,12 @@ public class DistanceSensors {
         double distRight = (voltsRight / MAX_VOLTS) * MAX_DISTANCE_MM;
         double distIntake = (voltsIntake / MAX_VOLTS) * MAX_DISTANCE_MM;
         int count=0;
-        if(distLeft+distRight>emptyThresh){
-        } else if (distLeft+distRight>oneThresh){
-            count++;
-        }
-        else{
-            count=count+2;
+        if(distLeft+distRight<emptyThresh){
+            if(distLeft+distRight<oneThresh){
+                count=count+2;
+            } else{
+                count++;
+            }
         }
 
         //count in intake
@@ -56,6 +56,16 @@ public class DistanceSensors {
         } else{
             return 0;
         }
+    }
+    public double[] rawVals(){
+        double voltsLeft = lS.getVoltage();
+        double voltsRight = rS.getVoltage();
+        double voltsIntake = iS.getVoltage();
+        double[] returnVal = new double[3];
+        returnVal[0] = (voltsLeft / MAX_VOLTS) * MAX_DISTANCE_MM;
+        returnVal[1] = (voltsRight / MAX_VOLTS) * MAX_DISTANCE_MM;
+        returnVal[2] = (voltsIntake / MAX_VOLTS) * MAX_DISTANCE_MM;
+        return returnVal;
     }
 
 
