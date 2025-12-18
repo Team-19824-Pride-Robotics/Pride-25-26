@@ -34,7 +34,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 public class Teleop extends LinearOpMode {
     //Pedro stuff
     private Follower follower;
-    public static Pose startingPose; // optional starting pose
+    public Pose currentPose;
+    public Pose startingPose = new Pose(28, 130, Math.toRadians(136));
     private TelemetryManager telemetryM;
 
     //mech subsystem declarations
@@ -117,33 +118,19 @@ public class Teleop extends LinearOpMode {
 
         //init pedro
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-        follower.update();
+        follower.setPose(startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        while(!allianceSelected){
-            telemetry.addData("Select alliance with Dpad","");
-            telemetry.addData("Left=Blue","");
-            telemetry.addData("Right=Red","");
-            if(gamepad1.dpad_right){
-                redAlliance=true;
-                allianceSelected=true;
-                limelight.setPipeline(3);
-            } if(gamepad1.dpad_left){
-                redAlliance=false;
-                allianceSelected=true;
-                limelight.setPipeline(4);
-            }
-            telemetry.update();
-        }
 
         waitForStart();
 
         if (isStopRequested()) return;
 
+        follower.startTeleopDrive();
         while (opModeIsActive()) {
 
 
             //drive control
+
             follower.update();
             telemetryM.update();
 
@@ -151,7 +138,7 @@ public class Teleop extends LinearOpMode {
                     -gamepad1.left_stick_y,   // forward/back
                     -gamepad1.left_stick_x,   // strafe
                     -gamepad1.right_stick_x,  // rotation
-                    false                     // field-centric=false
+                    true                     // field-centric=false
             );
             //Aim at goal
             if (gamepad1.y) {

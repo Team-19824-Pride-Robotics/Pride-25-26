@@ -26,7 +26,7 @@ public class OldTeleop extends LinearOpMode {
     //fun variables
     private int[][] balls;
     private static double ejectVel = 600;
-    private static double defaultLaunchVel =1000;
+    private static double defaultLaunchVel =1100;
     private static double spinUpPower = 1;
     private static double UpRightPos=260;
     private static double UpLeftPos=210;
@@ -113,7 +113,7 @@ public class OldTeleop extends LinearOpMode {
 
 
             double y = -gamepad2.left_stick_y; // Remember, Y stick value is reversed
-            double x = -gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
+            double x = gamepad2.left_stick_x * 1.1; // Counteract imperfect strafing
             double rx = gamepad2.right_stick_x;
 
             // Denominator is the largest motor power (absolute value) or 1

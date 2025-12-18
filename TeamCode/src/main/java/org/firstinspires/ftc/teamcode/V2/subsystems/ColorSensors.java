@@ -26,10 +26,10 @@ public class ColorSensors implements Subsystem {
 
 
     public ColorSensors(HardwareMap hardwareMap) {
-        lLS = hardwareMap.get(NormalizedColorSensor.class, "lLCS");
-        rLS = hardwareMap.get(NormalizedColorSensor.class, "rLCS");
-        lRS = hardwareMap.get(NormalizedColorSensor.class, "lRCS");
-        rRS = hardwareMap.get(NormalizedColorSensor.class, "rRCS");
+        lLS = hardwareMap.get(NormalizedColorSensor.class, "lLS");
+        rLS = hardwareMap.get(NormalizedColorSensor.class, "rLS");
+        lRS = hardwareMap.get(NormalizedColorSensor.class, "lRS");
+        rRS = hardwareMap.get(NormalizedColorSensor.class, "rRS");
 
     }
     // -1=nothing detected

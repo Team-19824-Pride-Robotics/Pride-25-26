@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.arcrobotics.ftclib.command.MecanumControllerCommand;
+import com.pedropathing.control.FilteredPIDFCoefficients;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -15,8 +17,32 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(11.3);
-
+            .mass(11.3)
+            .forwardZeroPowerAcceleration(-76.91)
+            .lateralZeroPowerAcceleration(-97.502)
+            .translationalPIDFCoefficients(new PIDFCoefficients(
+                    0.1,
+                    0,
+                    0.01,
+                    0.025
+            ))
+            .headingPIDFCoefficients(new PIDFCoefficients(
+                    1,
+                    0,
+                    0.01,
+                    0
+            ))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(
+                    0.01,
+                    0,
+                    0.001,
+                    0.6,
+                    0.014
+            ))
+            .centripetalScaling(0)
+            .useSecondaryDrivePIDF(true)
+            .useSecondaryHeadingPIDF(true)
+            .useSecondaryTranslationalPIDF(true);
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
@@ -33,11 +59,12 @@ public class Constants {
             .leftFrontMotorName("fLD")
             .rightRearMotorName("bRD")
             .leftRearMotorName("bLD")
-            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .xVelocity(74.17)
+            .yVelocity(60.205)
             ;
 
 
