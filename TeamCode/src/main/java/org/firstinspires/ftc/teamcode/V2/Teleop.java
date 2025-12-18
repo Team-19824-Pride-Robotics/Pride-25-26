@@ -65,7 +65,7 @@ public class Teleop extends LinearOpMode {
     private boolean launchRight=false;
     private boolean launchE = false; //kickstarts efficient launch sequence
     private boolean indexMode = false;
-    private boolean eject = false;
+    private boolean block = false;
     private boolean intaking=false;
     private double launchVel=0;
     private int launchQueue = 0;
@@ -202,15 +202,10 @@ public class Teleop extends LinearOpMode {
 
             //intake
             if(gamepad2.right_trigger>0.1 || gamepad2.left_trigger>0.1) {
-                intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
-                intaking=true;
+                intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger); //Sets power based on triggers
+                block = gamepad1.left_trigger > 0.1;
             }
-            if(intaking && gamepad2.right_trigger<0.1 && gamepad2.left_trigger<0.1){
-                if(distanceSensors.getCount()>1){
-                    eject=true;
-                }
-                intaking=false;
-            }
+
             //indexing selecting
             if(gamepad2.start){
                 indexMode=true;
@@ -235,9 +230,6 @@ public class Teleop extends LinearOpMode {
                         launchRight = false;
                     }
                     launchE = false;
-                } else if (eject) {
-                    launchLeft=true;
-                    eject=false;
                 } else {
                     if (gamepad2.right_bumper || gamepad2.left_bumper) {
                         launchE = true;
@@ -250,18 +242,17 @@ public class Teleop extends LinearOpMode {
                 }
 
                 //launch logic
-                if(!eject) {
+
                     if (limelight.getDistance() == -1) {
                         launchVel = defaultLaunchVel;
                     } else {
                         launchVel = lut.get(limelight.getDistance());
                     }
-                } else{
-                    launchVel=ejectVel;
-                }
+
+
 
                 //Kicker logic for non index mode
-                if (!indexMode || !eject) {
+                if (!indexMode) {
                     //Kickstart first launch
                     if (launchE) {
                         if (distanceSensors.getSide() == 1) {
@@ -274,6 +265,13 @@ public class Teleop extends LinearOpMode {
                         launchE = false;
                     }
 
+                    if (launchRight || launchLeft){
+                            block=false;
+                    }
+
+                    if(block){
+                        ballKickers.block();
+                    }
                     //Launch logic
                     if (launchRight) {
                         ballKickers.retractLeft();

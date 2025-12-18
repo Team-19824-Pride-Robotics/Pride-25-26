@@ -22,6 +22,7 @@ public class BallKickers {
     public static double upLeftPosition = 0.6;
     public static double downRightPosition = 0.85;
     public static double upRightPosition = 0.45;
+    public static double blockPos = 0.7;
 
     private final ControlSystem flywheelControlSystem = ControlSystem.builder()
             .velPid(0.005, 0, 0)
@@ -46,6 +47,7 @@ public class BallKickers {
     public void retractRight() {
         new SetPosition(rightBallKicker, downRightPosition).schedule();
     }
+    public void block(){new SetPosition(leftBallKicker, blockPos).schedule();}
     public double getLeftPos(){
         return leftBallKicker.getCurrentPosition();
     }
