@@ -21,6 +21,7 @@ public class DistanceSensors {
     public DistanceSensors(HardwareMap hardwareMap) {
         lS = hardwareMap.get(AnalogInput.class, "lDS");
         rS = hardwareMap.get(AnalogInput.class, "rDS");
+        iS = hardwareMap.get(AnalogInput.class, "iDS");
 
 
     }

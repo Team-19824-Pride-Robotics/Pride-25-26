@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
 import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
 import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
-import org.firstinspires.ftc.teamcode.V1.subsystems.transferChanneler;
 
 @TeleOp
 @Configurable
@@ -22,7 +21,6 @@ public class Testleop extends LinearOpMode {
     private flywheel flywheel;
     private ballKickers ballKickers;
     private limelight limelight;
-    private transferChanneler transferChanneler;
     //logic variable declarations
     private boolean launchLeft=false;
     private boolean launchRight=false;
@@ -64,7 +62,7 @@ public class Testleop extends LinearOpMode {
         limelight = new limelight(hardwareMap);
         flywheel = new flywheel(hardwareMap);
         ballKickers = new ballKickers(hardwareMap);
-        transferChanneler = new transferChanneler(hardwareMap);
+
 
         //init mechs
         limelight.init();
@@ -72,7 +70,7 @@ public class Testleop extends LinearOpMode {
         flywheel.init();
         ballKickers.retractRight();
         ballKickers.retractLeft();
-        transferChanneler.center();
+
 
 
 
@@ -123,21 +121,13 @@ public class Testleop extends LinearOpMode {
 
             //Channeler testing
 
-            if(gamepad2.x){
-                transferChanneler.coverLeft();
-            }
-            if(gamepad2.a){
-                transferChanneler.center();
-            }
-            if(gamepad2.b){
-                transferChanneler.coverRight();
-            }
+
 
             //update mechs
             flywheel.update(pidf.calculate());
             ballKickers.update();
             intake.update();
-            transferChanneler.update();
+
 
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());

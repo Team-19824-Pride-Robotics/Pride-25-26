@@ -151,7 +151,7 @@ public class Teleop extends LinearOpMode {
                     -gamepad1.left_stick_y,   // forward/back
                     -gamepad1.left_stick_x,   // strafe
                     -gamepad1.right_stick_x,  // rotation
-                    false                     // field-centric
+                    false                     // field-centric=false
             );
             //Aim at goal
             if (gamepad1.y) {
@@ -173,8 +173,7 @@ public class Teleop extends LinearOpMode {
                 follower.followPath(turnChain);
 
             }
-                if (gamepad1.a) { // Press A to auto-move
-                    Pose targetPose = new Pose(100, 50, Math.toRadians(90));
+                if (gamepad1.a) { //Auto-park
 
                     PathChain pathChain = follower.pathBuilder()
                             .addPath(

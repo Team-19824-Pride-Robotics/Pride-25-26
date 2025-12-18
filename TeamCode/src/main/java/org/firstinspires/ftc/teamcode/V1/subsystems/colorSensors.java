@@ -16,7 +16,8 @@ public class colorSensors {
 
     public static double redThresh=0;
     public static double blueThresh=0;
-    public static double greenThresh=0;
+    public static double greenThresh=0.05;
+    public static double objectThresh=0.005;
 
 
     public colorSensors(HardwareMap hardwareMap) {
@@ -26,54 +27,68 @@ public class colorSensors {
         rRS = hardwareMap.get(NormalizedColorSensor.class, "rRS");
 
     }
-// -1=nothing detected
-// 0 =purple
-// 1 =green
+// 0=nothing detected
+// 1 =purple
+// 2 =green
     public int getColorLeft() {
         NormalizedRGBA colorsL = lLS.getNormalizedColors();
         NormalizedRGBA colorsR = rLS.getNormalizedColors();
-        if (colorsL.blue > colorsL.green) {
-            if (colorsL.blue > blueThresh) {
+        int green = 0;
+        int purple = 0;
+        if ((colorsL.red > objectThresh || colorsR.red > objectThresh) && (colorsL.blue > objectThresh || colorsR.blue > objectThresh) && (colorsL.green > objectThresh || colorsR.green > objectThresh)) {
+            if (colorsL.red > redThresh || colorsR.red > redThresh) {
+                purple++;
+            } else {
+                green++;
+            }
+            if (colorsL.blue > blueThresh || colorsR.blue > blueThresh) {
+                purple++;
+            } else {
+                green++;
+            }
+            if (colorsL.green < greenThresh || colorsR.green < greenThresh) {
+                purple++;
+            } else {
+                green++;
+            }
+            if (purple > green) {
                 return 1;
             } else {
-                return 0;
+                return 2;
             }
-        } else if ((colorsR.red + colorsR.blue) / 2 > colorsR.green){
-            if (colorsR.red > redThresh && colorsR.blue > blueThresh) {
-                return 1;
-            } else {
-                return 0;
-            }
-        } else if(colorsL.green>greenThresh) {
-            return 2;
-        } else if(colorsR.green>greenThresh) {
-            return 2;
-        }  else{
-            return -1;
+        } else {
+            return 0;
         }
     }
     public int getColorRight() {
-        NormalizedRGBA colorsL = lRS.getNormalizedColors();
-        NormalizedRGBA colorsR = rRS.getNormalizedColors();
-        if (colorsL.blue > colorsL.green) {
-            if (colorsL.blue > blueThresh) {
-                return 1;
-            } else {
+            NormalizedRGBA colorsL = lLS.getNormalizedColors();
+            NormalizedRGBA colorsR = rLS.getNormalizedColors();
+            int green=0;
+            int purple=0;
+            if((colorsL.red>objectThresh||colorsR.red>objectThresh)&&(colorsL.blue>objectThresh||colorsR.blue>objectThresh)&&(colorsL.green>objectThresh||colorsR.green>objectThresh)){
+                if(colorsL.red>redThresh||colorsR.red>redThresh){
+                    purple++;
+                } else{
+                    green++;
+                }
+                if(colorsL.blue>blueThresh||colorsR.blue>blueThresh){
+                    purple++;
+                } else{
+                    green++;
+                }
+                if(colorsL.green<greenThresh||colorsR.green<greenThresh){
+                    purple++;
+                } else{
+                    green++;
+                }
+                if(purple>green){
+                    return 1;
+                } else{
+                    return 2;
+                }
+            }else{
                 return 0;
             }
-        } else if (colorsR.blue > colorsR.green){
-            if (colorsR.blue > blueThresh) {
-                return 1;
-            } else {
-                return 0;
-            }
-        } else if(colorsL.green>greenThresh) {
-            return 2;
-        } else if(colorsR.green>greenThresh) {
-            return 2;
-        }  else{
-            return 0;
-        }
     }
 
     public NormalizedRGBA[] getColorsBro(){

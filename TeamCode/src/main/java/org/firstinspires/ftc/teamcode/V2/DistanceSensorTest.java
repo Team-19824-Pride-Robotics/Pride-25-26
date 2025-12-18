@@ -45,7 +45,9 @@ public class DistanceSensorTest extends LinearOpMode {
 
             telemetry.addData("Count", distanceSensors.getCount());
             telemetry.addData("Side", distanceSensors.getSide());
-            telemetry.addData("Raw data", distanceSensors.rawVals());
+            telemetry.addData("Raw data Left", distanceSensors.rawVals()[0]);
+            telemetry.addData("Raw data Right", distanceSensors.rawVals()[1]);
+            telemetry.addData("Raw data Intake", distanceSensors.rawVals()[2]);
 
             telemetry.update();
 
