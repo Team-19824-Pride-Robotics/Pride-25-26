@@ -12,8 +12,8 @@ public class distanceSensors {
     private AnalogInput rS; //right sensor
 
     private AnalogInput iS; //intake sensor
-    public static double emptyThresh=0; //todo: tune vals
-    public static double oneThresh=0;
+    public static double emptyThresh=450; //todo: tune vals
+    public static double oneThresh=150;
 
     public static double emptyIntakeThresh=0;
     private static final double MAX_VOLTS = 3.3;

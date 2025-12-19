@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.V1;
+package org.firstinspires.ftc.teamcode.V1.Autos;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
@@ -20,9 +20,10 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @Autonomous(name = "blueAuto")
 @Configurable
 
-public class blueAuto extends OpMode {
+public class FarBlueAuto_12 extends OpMode {
 
-
+//Scores preload, close preset, middle preset and far preset
+    //No indexing or gate opening yet
 
 
 
@@ -30,8 +31,8 @@ public class blueAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(28, 130, Math.toRadians(136)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(55, 100, Math.toRadians(140)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
+    private final Pose startPose = new Pose(64, 8.5, Math.toRadians(90)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(55, 100, Math.toRadians(115)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
     private final Pose lineup1Pose = new Pose(55, 87, Math.toRadians(180)); // Highest (First Set)
     private final Pose gobble1Pose = new Pose(18, 87, Math.toRadians(180)); // Highest (First Set)
     private final Pose lineup2Pose = new Pose(55, 64, Math.toRadians(180)); // Middle (Second Set)
