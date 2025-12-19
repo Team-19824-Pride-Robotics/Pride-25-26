@@ -41,7 +41,6 @@ public class Teleop extends LinearOpMode {
     private distanceSensors distanceSensors;
     //fun variables
     //Flywheel Velocities
-    private static double ejectVel = 600;
     private static double defaultLaunchVel =1000;
 
     //Kicker positions
@@ -51,22 +50,22 @@ public class Teleop extends LinearOpMode {
     private double DownLeftPos=114;
 
     //Alliance color logic
-    private boolean allianceSelected=false;
-    private boolean redAlliance=false;
+    private boolean allianceSelected=false; //only allows teleop to progress after alliance is selected
+    private boolean redAlliance=false; // durrrrr
 
     //Launching logic
-    private boolean launchLeft=false;
-    private boolean launchRight=false;
+    private boolean launchLeft=false; //When true left chamber launches and automatically retracts
+    private boolean launchRight=false; //When true right chamber launches and automatically retracts
     private boolean launchE = false; //kickstarts efficient launch sequence
-    private boolean indexMode = false;
-    private boolean block = false;
-    private boolean intaking=false;
-    private double launchVel=0;
-    private int launchQueue = 0;
+    private boolean indexMode = false; //When false, robot launches artifacts as efficiently as possible, when true, launching is manual to index
+    private boolean block = true; //Kicks left kicker halfway to block space and prevent robot from picking up 4
+    private boolean stopIntaking=false; //Stops intake once robot is full, resets after trigger is released
+    private double launchVel=0; //desired launch velocity of launcher
+    private int launchQueue = 0; //artifact queue, used in E mode
 
     //Park positions
-    private static double parkX=0;
-    private static double parkY=0;
+    private static double parkX=0; //park pos x
+    private static double parkY=0; //park pos y
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
@@ -196,10 +195,20 @@ public class Teleop extends LinearOpMode {
             //Mechansims//
             //////////////
 
-            //intake
-            if(gamepad2.right_trigger>0.1 || gamepad2.left_trigger>0.1) {
+            //intake and block logic
+
+            //Check if transfer is full before unblocking
+            if(block) {
+                if (distanceSensors.getCount() > 1) {
+                    block = false;
+                    stopIntaking=true;
+                }
+            }
+            if((gamepad1.right_trigger>0.1 || gamepad1.left_trigger>0.1) && !stopIntaking) {
                 intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger); //Sets power based on triggers
-                block = gamepad1.left_trigger > 0.1;
+            }
+            if(gamepad1.left_trigger<0.1){
+                stopIntaking=false; //resets intake
             }
 
             //indexing selecting
@@ -286,6 +295,7 @@ public class Teleop extends LinearOpMode {
                             if (launchQueue == 1) {
                                 ballKickers.kickRight();
                                 ballKickers.kickLeft();
+                                block=true;
                             } else {
                                 ballKickers.kickLeft();
                             }
