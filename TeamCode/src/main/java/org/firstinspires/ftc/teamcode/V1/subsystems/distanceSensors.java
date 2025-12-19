@@ -19,8 +19,9 @@ public class distanceSensors {
     private static final double MAX_VOLTS = 3.3;
     private static final double MAX_DISTANCE_MM = 1000.0;
     public distanceSensors(HardwareMap hardwareMap) {
-        lS = hardwareMap.get(AnalogInput.class, "lS");
-        rS = hardwareMap.get(AnalogInput.class, "rS");
+        lS = hardwareMap.get(AnalogInput.class, "lDS");
+        rS = hardwareMap.get(AnalogInput.class, "rDS");
+        iS = hardwareMap.get(AnalogInput.class, "iDS");
 
 
     }
@@ -34,12 +35,12 @@ public class distanceSensors {
         double distRight = (voltsRight / MAX_VOLTS) * MAX_DISTANCE_MM;
         double distIntake = (voltsIntake / MAX_VOLTS) * MAX_DISTANCE_MM;
         int count=0;
-        if(distLeft+distRight>emptyThresh){
-        } else if (distLeft+distRight>oneThresh){
-            count++;
-        }
-        else{
-            count=count+2;
+        if(distLeft+distRight<emptyThresh){
+            if(distLeft+distRight<oneThresh){
+                count=count+2;
+            } else{
+                count++;
+            }
         }
 
         //count in intake
@@ -57,6 +58,19 @@ public class distanceSensors {
             return 0;
         }
     }
+    public double[] rawVals(){
+        double voltsLeft = lS.getVoltage();
+        double voltsRight = rS.getVoltage();
+        double voltsIntake = iS.getVoltage();
+        double[] returnVal = new double[3];
+        returnVal[0] = (voltsLeft / MAX_VOLTS) * MAX_DISTANCE_MM;
+        returnVal[1] = (voltsRight / MAX_VOLTS) * MAX_DISTANCE_MM;
+        returnVal[2] = (voltsIntake / MAX_VOLTS) * MAX_DISTANCE_MM;
+        return returnVal;
+    }
+
+
+
 
 
 

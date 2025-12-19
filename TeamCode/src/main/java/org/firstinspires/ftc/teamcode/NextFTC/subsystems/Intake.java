@@ -1,12 +1,7 @@
-package org.firstinspires.ftc.teamcode.V2.subsystems;
+package org.firstinspires.ftc.teamcode.NextFTC.subsystems;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import dev.nextftc.control.ControlSystem;
 import dev.nextftc.core.subsystems.Subsystem;
-import dev.nextftc.hardware.controllable.MotorGroup;
 import dev.nextftc.hardware.impl.MotorEx;
-import dev.nextftc.hardware.controllable.RunToVelocity;
 import dev.nextftc.hardware.powerable.SetPower;
 
 public class Intake implements Subsystem {

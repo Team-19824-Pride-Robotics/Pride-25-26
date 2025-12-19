@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.V2;
+package org.firstinspires.ftc.teamcode.V1;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.pathConstraints;
 
 import com.arcrobotics.ftclib.util.InterpLUT;
@@ -6,27 +6,21 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.paths.PathConstraints;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
-import org.firstinspires.ftc.teamcode.V2.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.V2.subsystems.Flywheel;
-import org.firstinspires.ftc.teamcode.V2.subsystems.BallKickers;
-import org.firstinspires.ftc.teamcode.V2.subsystems.Limelight;
-import org.firstinspires.ftc.teamcode.V2.subsystems.ColorSensors;
-import org.firstinspires.ftc.teamcode.V2.subsystems.DistanceSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
+import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
+import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
+import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
+import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp
@@ -39,13 +33,12 @@ public class Teleop extends LinearOpMode {
     private TelemetryManager telemetryM;
 
     //mech subsystem declarations
-    private Intake intake;
-    private Flywheel flywheel;
-    private BallKickers ballKickers;
-    private Limelight limelight;
-
-    private ColorSensors colorSensors;
-    private DistanceSensors distanceSensors;
+    private intake intake;
+    private flywheel flywheel;
+    private ballKickers ballKickers;
+    private limelight limelight;
+    private colorSensors colorSensors;
+    private distanceSensors distanceSensors;
     //fun variables
     //Flywheel Velocities
     private static double ejectVel = 600;
@@ -102,25 +95,41 @@ public class Teleop extends LinearOpMode {
 
 
         //Declare mechs
-        intake = new Intake();
-        limelight = new Limelight(hardwareMap);
-        flywheel = new Flywheel();
-        ballKickers = new BallKickers();
-        colorSensors = new ColorSensors(hardwareMap);
-        distanceSensors= new DistanceSensors(hardwareMap);
+        intake = new intake(hardwareMap );
+        limelight = new limelight(hardwareMap);
+        flywheel = new flywheel(hardwareMap);
+        ballKickers = new ballKickers(hardwareMap);
+        colorSensors = new colorSensors(hardwareMap);
+        distanceSensors= new distanceSensors(hardwareMap);
 
         //init mechs
         limelight.init();
         limelight.setPipeline(3);
-        flywheel.initialize();
-        ballKickers.initialize();
-        intake.initialize();
+        flywheel.init();
+        ballKickers.retractLeft();
+        ballKickers.retractRight();
+        intake.setPower(0);
 
         //init pedro
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
+        while(!allianceSelected){
+            telemetry.addData("Select alliance with Dpad","");
+            telemetry.addData("Left=Blue","");
+            telemetry.addData("Right=Red","");
+            if(gamepad1.dpad_right){
+                redAlliance=true;
+                allianceSelected=true;
+                limelight.setPipeline(3);
+            } if(gamepad1.dpad_left){
+                redAlliance=false;
+                allianceSelected=true;
+                limelight.setPipeline(4);
+            }
+            telemetry.update();
+        }
         waitForStart();
 
         if (isStopRequested()) return;

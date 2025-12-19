@@ -1,18 +1,20 @@
-package org.firstinspires.ftc.teamcode.V2;
+package org.firstinspires.ftc.teamcode.V1;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
+import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
+import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
+import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "blueAuto")
@@ -38,9 +40,19 @@ public class blueAuto extends OpMode {
     private final Pose scorePose3 = new Pose(55, 100, Math.toRadians(140));
     private final Pose lineup3Pose = new Pose(55, 43, Math.toRadians(180)); // Middle (Second Set)
     private final Pose gobble3Pose = new Pose(12, 43, Math.toRadians(180)); // Middle (Second Set)
-    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3;
-
-
+    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3, park;
+    private intake intake;
+    private flywheel flywheel;
+    private ballKickers ballKickers;
+    private limelight limelight;
+    private colorSensors colorSensors;
+    private distanceSensors distanceSensors;
+    private static int launchVel=1100;
+    private static double UpRightPos=185;
+    private static double UpLeftPos=240;
+    private static double intakePower=0.8;
+    private double DownRightPos=309;
+    private double DownLeftPos=114;
     public void buildPaths() {
 
         scorePreload = follower.pathBuilder()
@@ -99,7 +111,13 @@ public class blueAuto extends OpMode {
                 .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose3.getHeading())
                 .build();
 
+        park = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, gobble1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), gobble1Pose.getHeading())
+                .build();
+
     }
+
 
 
 
@@ -112,91 +130,71 @@ public class blueAuto extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
 
-//set the speed and back up
+//Start flywheel, set speed, go to score pos
             case 0:
                 follower.setMaxPower(1);  //slow down the path following if necessary
-                follower.followPath(scorePreload);
+                follower.followPath(scorePreload, true);
                 setPathState(1);
                 break;
-//Launches artifacts, then sets the transfer and intake on and sets the robot to slow. Then it will run grab pickup 1
+//Launch 1st set, go to pickup 2nd
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-
-                    /* score the preload artifacts by spinning the transfer */
-
-
-
-
+                    launchArtifactsE();
+                    startIntake();
                     follower.followPath(grabPickup1,true);
-
                     setPathState(2);
                 }
                 break;
-//picks up the balls, makes the robot fast again, and then gets into position to score
+//go to launch 2nd set
             case 2:
-
                 if(!follower.isBusy()) {
-
+                    unBlock();
                     follower.followPath(scorePickup1,true);
                     setPathState(3);
                 }
                 break;
-//launches the balls, then sets the intake and transfer on, closes the servo and slows it down then it will pick up the balls
+//launch 2nd set, go to pickup 3rd set
             case 3:
-
                 if(!follower.isBusy()) {
-
-
+                    launchArtifactsE();
+                    startIntake();
                     follower.followPath(grabPickup2,true);
                     setPathState(4);
                 }
                 break;
-//gets into scoring position
+//go to launch 3rd set
             case 4:
-
                 if(!follower.isBusy()) {
-
-
+                    unBlock();
                     follower.followPath(scorePickup2,true);
-
                     setPathState(5);
                 }
                 break;
-//scores the balls after opening the servo and gets back in position to pick up the balls
+//launch 3rd set, go to pickup 4th set
             case 5:
-
-
+                launchArtifactsE();
+                startIntake();
                 if(!follower.isBusy()) {
-
                     follower.followPath(grabPickup3,true);
                     setPathState(6);
                 }
                 break;
-
+//go to launch 4th set
             case 6:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup3Pose's position */
                 if(!follower.isBusy()) {
-                    /* Grab Sample */
-
-
-
+                    unBlock();
                     follower.followPath(scorePickup3,true);
-
-
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-
                     setPathState(7);
                 }
                 break;
-
+//launch 4th set, go to park
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-
-
-
-                    /* Set the state to a Case we won't use or define, so it just stops running an new paths */
+                    launchArtifactsE();
+                    stopIntake();
+                    follower.followPath(park, false);
                     setPathState(-1);
                 }
                 break;
@@ -216,7 +214,7 @@ public class blueAuto extends OpMode {
 
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
-
+        flywheel.update(launchVel);
         autonomousPathUpdate();
 
         // Feedback to Driver Hub for debugging
@@ -265,16 +263,61 @@ public class blueAuto extends OpMode {
 
 
 
-
-
-    public Runnable intake_change(double power) {
-
-        return null;
+    public void startIntake(){
+        intake.setPower(1);
+        ballKickers.doubleblock();
     }
+    public void unBlock(){
+        ballKickers.retractLeft();
+        ballKickers.retractRight();
+    }
+    public void stopIntake(){
+        intake.setPower(0);
+    }
+    public void launchArtifactsE() {
 
+        while(Math.abs(flywheel.getVelocity()-launchVel)>40){
+        }
+        if(distanceSensors.getSide()==1){ //If efficient side is right
+            kickRight();
+            kickLeft();
+            while(colorSensors.getColorLeft()<1||colorSensors.getColorRight()<1){
 
+            }
+            kickBoth();
+        } else{
+            kickLeft();
+            kickRight();
+            while(colorSensors.getColorLeft()<1||colorSensors.getColorRight()<1){
+            }
+            kickBoth();
+        }
 
-
-
-
+    }
+    public void kickLeft(){
+        while(Math.abs(flywheel.getVelocity()-launchVel)>40){
+        }
+        ballKickers.kickLeft();
+        while(ballKickers.getRightPos()>UpLeftPos){
+        }
+        ballKickers.retractLeft();
+    }
+    public void kickRight(){
+        while(Math.abs(flywheel.getVelocity()-launchVel)>40){
+        }
+        ballKickers.kickRight();
+        while(ballKickers.getRightPos()<UpRightPos){
+        }
+        ballKickers.retractRight();
+    }
+    public void kickBoth(){
+        while(Math.abs(flywheel.getVelocity()-launchVel)>40){
+        }
+        ballKickers.kickRight();
+        ballKickers.kickLeft();
+        while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
+        }
+        ballKickers.retractRight();
+        ballKickers.retractLeft();
+    }
 }
