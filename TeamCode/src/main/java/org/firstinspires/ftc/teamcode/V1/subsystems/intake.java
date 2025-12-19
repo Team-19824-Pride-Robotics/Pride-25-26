@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.V1.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
@@ -18,7 +19,7 @@ public class intake {
 
     public intake(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotorEx.class, "i");
-
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
     }
 

@@ -61,11 +61,11 @@ public class colorSensors {
         }
     }
     public int getColorRight() {
-            NormalizedRGBA colorsL = lLS.getNormalizedColors();
-            NormalizedRGBA colorsR = rLS.getNormalizedColors();
+            NormalizedRGBA colorsL = lRS.getNormalizedColors();
+            NormalizedRGBA colorsR = rRS.getNormalizedColors();
             int green=0;
             int purple=0;
-            if((colorsL.red>objectThresh||colorsR.red>objectThresh)&&(colorsL.blue>objectThresh||colorsR.blue>objectThresh)&&(colorsL.green>objectThresh||colorsR.green>objectThresh)){
+            if((colorsL.red > objectThresh || colorsR.red > objectThresh) && (colorsL.blue > objectThresh || colorsR.blue > objectThresh) && (colorsL.green > objectThresh || colorsR.green > objectThresh)){
                 if(colorsL.red>redThresh||colorsR.red>redThresh){
                     purple++;
                 } else{

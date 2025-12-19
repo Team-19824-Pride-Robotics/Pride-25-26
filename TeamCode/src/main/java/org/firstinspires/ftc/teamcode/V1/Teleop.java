@@ -41,11 +41,11 @@ public class Teleop extends LinearOpMode {
     private distanceSensors distanceSensors;
     //fun variables
     //Flywheel Velocities
-    private static double defaultLaunchVel =1000;
+    private static double defaultLaunchVel =1050;
 
     //Kicker positions
-    private static double UpRightPos=185;
-    private static double UpLeftPos=240;
+    private static double UpRightPos=260;
+    private static double UpLeftPos=210;
     private double DownRightPos=309;
     private double DownLeftPos=114;
 
@@ -205,7 +205,7 @@ public class Teleop extends LinearOpMode {
                 }
             }
             if((gamepad1.right_trigger>0.1 || gamepad1.left_trigger>0.1) && !stopIntaking) {
-                intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger); //Sets power based on triggers
+                intake.setPower(gamepad1.left_trigger - gamepad1.right_trigger); //Sets power based on triggers
             }
             if(gamepad1.left_trigger<0.1){
                 stopIntaking=false; //resets intake
