@@ -31,16 +31,17 @@ public class CloseBlueAuto_12 extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(28, 130, Math.toRadians(136)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(55, 100, Math.toRadians(140)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
-    private final Pose lineup1Pose = new Pose(55, 87, Math.toRadians(180)); // Highest (First Set)
-    private final Pose gobble1Pose = new Pose(18, 87, Math.toRadians(180)); // Highest (First Set)
-    private final Pose lineup2Pose = new Pose(55, 64, Math.toRadians(180)); // Middle (Second Set)
-    private final Pose gobble2Pose = new Pose(9, 64, Math.toRadians(180)); // Middle (Second Set)
-    private final Pose scorePose2 = new Pose(55, 100, Math.toRadians(140));
-    private final Pose scorePose3 = new Pose(55, 100, Math.toRadians(140));
-    private final Pose lineup3Pose = new Pose(55, 43, Math.toRadians(180)); // Middle (Second Set)
-    private final Pose gobble3Pose = new Pose(12, 43, Math.toRadians(180)); // Middle (Second Set)
+    private final Pose startPose = new Pose(180-116, 130, Math.toRadians(46)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(180-85, 95, Math.toRadians(44)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
+    private final Pose lineup1Pose = new Pose(180-90, 87.5, Math.toRadians(0)); // Highest (First Set)
+    private final Pose gobble1Pose = new Pose(180-120, 87.5, Math.toRadians(0)); // Highest (First Set)
+    private final Pose lineup2Pose = new Pose(180-89, 64, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble2Pose = new Pose(180-135, 64, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gateOpenPose = new Pose(180-135, 76, Math.toRadians(0));
+    private final Pose scorePose2 = new Pose(180-85, 95, Math.toRadians(42));
+    private final Pose scorePose3 = new Pose(180-85, 95, Math.toRadians(46));
+    private final Pose lineup3Pose = new Pose(180-89, 43, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble3Pose = new Pose(180-132, 43, Math.toRadians(0)); // Middle (Second Set)
     private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3, park;
     private intake intake;
     private flywheel flywheel;
