@@ -1,10 +1,18 @@
 package org.firstinspires.ftc.teamcode.V1.subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
+import com.pedropathing.ftc.PoseConverter;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 
 @Configurable
@@ -28,16 +36,22 @@ public class limelight {
 
         //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
         int pattern = 0;
+        Timer timeout = new Timer();
         result = limelight.getLatestResult();
         for (int i = 0; i < 3; i++) {
             limelight.pipelineSwitch(i);
-                while (result.getPipelineIndex() != i) {
-                    result = limelight.getLatestResult();
-                    if (result != null && result.getPipelineIndex() == 0) {
-                        pattern = i;
-                    }
+            timeout.resetTimer();
+            while (result.getPipelineIndex() != i && timeout.getElapsedTimeSeconds()<0.2) {
+                if(timeout.getElapsedTimeSeconds()>0.2){
+                    return 0;
                 }
+                result = limelight.getLatestResult();
             }
+            result = limelight.getLatestResult();
+            if (result != null && result.isValid()) {
+                pattern = i;
+            }
+        }
 
         return pattern;
     }
@@ -50,6 +64,7 @@ public class limelight {
         }
     }
     public double getAngle(){
+        result = limelight.getLatestResult();
         if(result != null){
             return result.getTxNC();
         } else{
@@ -57,4 +72,20 @@ public class limelight {
         }
     }
 
+    public Pose relocalize(double heading) {
+        result = limelight.getLatestResult();
+        limelight.updateRobotOrientation(heading);
+        Pose3D botpose3d = result.getBotpose_MT2();
+
+        double x = botpose3d.getPosition().x;
+        double y = botpose3d.getPosition().y;
+
+        Pose2D botpose2d = new Pose2D(DistanceUnit.METER,x , y, AngleUnit.RADIANS, heading);
+
+        return PoseConverter.pose2DToPose(botpose2d, InvertedFTCCoordinates.INSTANCE);
+    }
+    public boolean isValid(){
+        result=limelight.getLatestResult();
+        return result != null && result.isValid();
+    }
 }

@@ -338,34 +338,22 @@ public class CloseRedAuto_12 extends OpMode {
         if(distanceSensors.getSide()==1){ //If efficient side is right
             kickRight();
             kickLeft();
-            actionTimer.resetTimer();
-            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
-                flywheel.update(launchVel);
-            }
-            while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)||(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
-                flywheel.update(launchVel);
-            }
-            actionTimer.resetTimer();
-            while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
-                flywheel.update(launchVel);
-            }
-
-            kickBoth();
         } else{
             kickLeft();
             kickRight();
-            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
-                flywheel.update(launchVel);
-            }
-            while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)||(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
-                flywheel.update(launchVel);
-            }
-            actionTimer.resetTimer();
-            while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
-                flywheel.update(launchVel);
-            }
-            kickBoth();
         }
+        actionTimer.resetTimer();
+        while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
+            flywheel.update(launchVel);
+        }
+        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)||(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+            flywheel.update(launchVel);
+        }
+        actionTimer.resetTimer();
+        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
+            flywheel.update(launchVel);
+        }
+        kickBoth();
 
         startNextPose=true;
     }

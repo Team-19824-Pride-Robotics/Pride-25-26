@@ -137,11 +137,14 @@ public class Teleop extends LinearOpMode {
         while (opModeIsActive()) {
 
 
-            //drive control
+            //localization
 
             follower.update();
             telemetryM.update();
-
+            if(limelight.isValid()) {
+                follower.setPose(limelight.relocalize(follower.getHeading()));
+            }
+//drive control
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y,   // forward/back
                     -gamepad1.left_stick_x,   // strafe
@@ -348,6 +351,9 @@ public class Teleop extends LinearOpMode {
             intake.update();
 
             //Basic telemetry
+            telemetry.addData("X", follower.getPose().getX());
+            telemetry.addData("Y", follower.getPose().getY());
+            telemetry.addData("Heading", follower.getPose().getHeading());
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
