@@ -10,6 +10,7 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -22,6 +23,8 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
 import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+import java.util.List;
 
 @TeleOp
 @Configurable
@@ -114,6 +117,11 @@ public class Teleop extends LinearOpMode {
         follower.setPose(startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
         while(!allianceSelected){
             telemetry.addData("Select alliance with Dpad","");
             telemetry.addData("Left=Blue","");
@@ -135,7 +143,9 @@ public class Teleop extends LinearOpMode {
 
         follower.startTeleopDrive();
         while (opModeIsActive()) {
-
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
 
             //localization
 
