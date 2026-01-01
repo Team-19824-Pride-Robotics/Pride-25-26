@@ -13,6 +13,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
@@ -34,6 +35,7 @@ public class Teleop extends LinearOpMode {
     public Pose currentPose;
     public Pose startingPose = new Pose(28, 130, Math.toRadians(136));
     private TelemetryManager telemetryM;
+    private boolean automatedDrive=false;
 
     //mech subsystem declarations
     private intake intake;
@@ -42,9 +44,11 @@ public class Teleop extends LinearOpMode {
     private limelight limelight;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
-    //fun variables
-    //Flywheel Velocities
+
+    //Flywheel stuff
     private static double defaultLaunchVel =1050;
+    InterpLUT lut = new InterpLUT();
+
 
     //Kicker positions
     private static double UpRightPos=260;
@@ -70,9 +74,11 @@ public class Teleop extends LinearOpMode {
     private static double parkX=0; //park pos x
     private static double parkY=0; //park pos y
 
-    //Other stuff
-    InterpLUT lut = new InterpLUT();
-    private ElapsedTime runtime = new ElapsedTime();
+    //Telemetry
+    private ElapsedTime elapsedTime = new ElapsedTime();
+    //Bulk caching
+    private List<LynxModule> allHubs;
+    public LynxModule CONTROL_HUB, EXPANSION_HUB;
 
 
     @Override
@@ -117,10 +123,16 @@ public class Teleop extends LinearOpMode {
         follower.setPose(startingPose);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
-
-        for (LynxModule hub : allHubs) {
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs){
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+        if(allHubs.get(0).isParent() && LynxConstants.isEmbeddedSerialNumber(allHubs.get(0).getSerialNumber())) {
+            CONTROL_HUB = allHubs.get(0);
+            EXPANSION_HUB = allHubs.get(1);
+        } else {
+            CONTROL_HUB = allHubs.get(1);
+            EXPANSION_HUB = allHubs.get(0);
         }
         while(!allianceSelected){
             telemetry.addData("Select alliance with Dpad","");
@@ -155,14 +167,17 @@ public class Teleop extends LinearOpMode {
                 follower.setPose(limelight.relocalize(follower.getHeading()));
             }
 //drive control
-            follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,   // forward/back
-                    -gamepad1.left_stick_x,   // strafe
-                    -gamepad1.right_stick_x,  // rotation
-                    true                     // field-centric=false
-            );
+            if(!automatedDrive) {
+                follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y,   // forward/back
+                        -gamepad1.left_stick_x,   // strafe
+                        -gamepad1.right_stick_x,  // rotation
+                        true                     // field-centric=false
+                );
+            }
             //Aim at goal
             if (gamepad1.y) {
+                automatedDrive = true;
                 double targetX = redAlliance ? 144 : 0;
                 double targetY = 144;
 
@@ -174,30 +189,32 @@ public class Teleop extends LinearOpMode {
 
                 double headingToTarget = Math.atan2(dy, dx);
 
-                PathChain turnChain = follower.pathBuilder()
-                        .setLinearHeadingInterpolation(follower.getHeading(), headingToTarget)
-                        .build();
+                Pose targetPose = new Pose(robotX, robotY, headingToTarget);
+                follower.holdPoint(targetPose);
 
-                follower.followPath(turnChain);
 
             }
-                if (gamepad1.a) { //Auto-park
-
-                    PathChain pathChain = follower.pathBuilder()
-                            .addPath(
-                                    new Path(
-                                            new BezierLine(
-                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(parkX, parkY)                                         // end
-                                            ),
-                                            pathConstraints
-                                    )
+            if (gamepad1.a) { //Auto-park
+                automatedDrive = true;
+                PathChain pathChain = follower.pathBuilder()
+                        .addPath(
+                                new Path(
+                                        new BezierLine(
+                                                new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                new Pose(parkX, parkY)                                         // end
+                                        ),
+                                        pathConstraints
+                                )
                             )
                             .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
                             .build();
 
                     follower.followPath(pathChain);
-                }
+            }
+            if(!gamepad1.a && !gamepad1.y){
+                follower.startTeleopDrive();
+                automatedDrive = false;
+            }
 
 
 
@@ -360,6 +377,9 @@ public class Teleop extends LinearOpMode {
             flywheel.update(launchVel);
             intake.update();
 
+            telemetry.addData("Loop Times", elapsedTime.milliseconds());
+            elapsedTime.reset();
+
             //Basic telemetry
             telemetry.addData("X", follower.getPose().getX());
             telemetry.addData("Y", follower.getPose().getY());
@@ -372,7 +392,7 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Left kicker pos: ", ballKickers.getLeftPos());
             telemetry.addData("Extra Count", distanceSensors.getCount());
             telemetry.addData("Side", distanceSensors.getSide());
-            telemetry.addData("runtime", runtime.seconds());
+
             telemetry.update();
 
             //Panels telemetry
