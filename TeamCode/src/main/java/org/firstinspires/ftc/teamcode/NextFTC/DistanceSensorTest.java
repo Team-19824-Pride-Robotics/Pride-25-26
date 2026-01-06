@@ -4,13 +4,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 
-import org.firstinspires.ftc.teamcode.NextFTC.subsystems.DistanceSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
 @TeleOp
 @Configurable
 public class DistanceSensorTest extends LinearOpMode {
     //mech subsystem declarations
 
-    private DistanceSensors distanceSensors;
+    private distanceSensors distanceSensors;
     //fun variables
 
 
@@ -22,7 +22,7 @@ public class DistanceSensorTest extends LinearOpMode {
 
 
 
-        distanceSensors = new DistanceSensors(hardwareMap);
+        distanceSensors = new distanceSensors(hardwareMap);
 
 
 

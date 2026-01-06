@@ -29,7 +29,7 @@ public class OldTeleop extends LinearOpMode {
     private static double defaultLaunchVel =1100;
     private static double spinUpPower = 1;
     private static double UpRightPos=260;
-    private static double UpLeftPos=210;
+    private static double UpLeftPos=220;
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private double launchVel=0;
@@ -158,20 +158,7 @@ public class OldTeleop extends LinearOpMode {
             }
 
 
-//            if(launchRight||launchLeft){ todo: test always running launcher
-//                if(gamepad2.dpad_up){
-//                    launchVel=ejectVel;
-//                }
-//                else if(limelight.getDistance()==-1){
-//                    launchVel=defaultLaunchVel;
-//                }else{
 //
-//                    launchVel=lut.get(limelight.getDistance());
-//                }
-//            }
-//            else{
-//                launchVel=0;
-//            }
 
                 if(limelight.getDistance()==-1){
                     launchVel=defaultLaunchVel;

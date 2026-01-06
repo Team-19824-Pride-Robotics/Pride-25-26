@@ -30,7 +30,7 @@ public class CloseRedAuto_12 extends OpMode {
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
-    private final Pose startPose = new Pose(116, 130, Math.toRadians(46)); // Start Pose of our robot.
+    private final Pose startPose = new Pose(116, 172, Math.toRadians(0)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(85, 95, Math.toRadians(44)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
     private final Pose lineup1Pose = new Pose(90, 87.5, Math.toRadians(0)); // Highest (First Set)
     private final Pose gobble1Pose = new Pose(120, 87.5, Math.toRadians(0)); // Highest (First Set)

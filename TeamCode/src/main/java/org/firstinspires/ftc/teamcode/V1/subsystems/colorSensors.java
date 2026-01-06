@@ -14,9 +14,9 @@ public class colorSensors {
     private NormalizedColorSensor rRS;
     private NormalizedColorSensor lRS;
 
-    public static double redThresh=0;
+    public static double redThresh=0.03;
     public static double blueThresh=0;
-    public static double greenThresh=0.05;
+    public static double greenThresh=0.045;
     public static double objectThresh=0.005;
 
 
@@ -36,16 +36,16 @@ public class colorSensors {
         int green = 0;
         int purple = 0;
         if ((colorsL.red > objectThresh || colorsR.red > objectThresh) && (colorsL.blue > objectThresh || colorsR.blue > objectThresh) && (colorsL.green > objectThresh || colorsR.green > objectThresh)) {
-            if (colorsL.red > redThresh || colorsR.red > redThresh) {
-                purple++;
-            } else {
-                green++;
-            }
-            if (colorsL.blue > blueThresh || colorsR.blue > blueThresh) {
-                purple++;
-            } else {
-                green++;
-            }
+//            if (colorsL.red > redThresh || colorsR.red > redThresh) {
+//                purple++;
+//            } else {
+//                green++;
+//            }
+//            if (colorsL.blue > blueThresh || colorsR.blue > blueThresh) {
+//                purple++;
+//            } else {
+//                green++;
+//            }
             if (colorsL.green < greenThresh || colorsR.green < greenThresh) {
                 purple++;
             } else {
@@ -66,17 +66,17 @@ public class colorSensors {
             int green=0;
             int purple=0;
             if((colorsL.red > objectThresh || colorsR.red > objectThresh) && (colorsL.blue > objectThresh || colorsR.blue > objectThresh) && (colorsL.green > objectThresh || colorsR.green > objectThresh)){
-                if(colorsL.red>redThresh||colorsR.red>redThresh){
-                    purple++;
-                } else{
-                    green++;
-                }
-                if(colorsL.blue>blueThresh||colorsR.blue>blueThresh){
-                    purple++;
-                } else{
-                    green++;
-                }
-                if(colorsL.green<greenThresh||colorsR.green<greenThresh){
+//                if(colorsL.red>redThresh||colorsR.red>redThresh){
+//                    purple++;
+//                } else{
+//                    green++;
+//                }
+//                if(colorsL.blue>blueThresh||colorsR.blue>blueThresh){
+//                    purple++;
+//                } else{
+//                    green++;
+//                }
+                if(colorsL.green<greenThresh&&                                                         colorsR.green<greenThresh){
                     purple++;
                 } else{
                     green++;

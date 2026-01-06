@@ -10,10 +10,10 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 public class ballKickers {
 
     // Dashboard-tunable positions
-    public static double downLeftPosition = 0.775;
+    public static double downLeftPosition = 0.75;
     public static double blockLeftPos=0.675; //67 🤣🤣🤣
     public static double upLeftPosition = 0.6;
-    public static double downRightPosition = 0.35;
+    public static double downRightPosition = 0.3;
     public static double blockRightPos=0.2;
     public static double upRightPosition = 0;
 
