@@ -14,7 +14,7 @@ public class flywheel {
     private final DcMotorEx flywheelB;
 
     public double flywheelVelocity = 0;
-    private static double kP=0.008;
+    private static double kP=0.015;
     private static double kI=0;
     private static double kD=0.00001;
     private static double kF=0.00068;

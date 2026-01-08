@@ -2,8 +2,10 @@ package org.firstinspires.ftc.teamcode.V1;
 
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.MathFunctions;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -21,7 +23,9 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @TeleOp
 @Configurable
+
 public class IntermediateTeleop extends LinearOpMode {
+
     //pedro stuff
     private Follower follower;
     public Pose currentPose;
@@ -53,6 +57,9 @@ public class IntermediateTeleop extends LinearOpMode {
     private boolean indexMode=false;
     private boolean launchE=false;
     private int launchQueue=3;
+    double targetHeading = Math.toRadians(180); // Radians
+    boolean headingLock = false;
+
     private
 
     //Other stuff
@@ -64,20 +71,26 @@ public class IntermediateTeleop extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         follower = Constants.createFollower(hardwareMap);
         follower.setPose(startingPose);
-
+        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
         //Intep table setup
-        lut.add(45, 950);
-        lut.add(48, 1000);
-        lut.add(56, 1100);
-        lut.add(60, 1120);
-        lut.add(70, 1140);
-        lut.add(80, 1160);
-        lut.add(90, 1180);
-        lut.add(100, 1200);
-        lut.add(110, 1260);
-        lut.add(120, 1280);
-        lut.add(130, 1340);
-        lut.add(140, 1360);
+        lut.add(0, 1000);
+        lut.add(48, 1080);
+        lut.add(55, 1100);
+        lut.add(60, 1100);
+        lut.add(65, 1120);
+        lut.add(70, 1120);
+        lut.add(75, 1140);
+        lut.add(80, 1140);
+        lut.add(85, 1200);
+        lut.add(90, 1240);
+        lut.add(95, 1280);
+        lut.add(100, 1300);
+        lut.add(105, 1320);
+        lut.add(110, 1360);
+        lut.add(115, 1380);
+        lut.add(120, 1400);
+        lut.add(125, 1420);
+        lut.add(130, 1440);
 
         lut.createLUT();
 
@@ -110,6 +123,9 @@ public class IntermediateTeleop extends LinearOpMode {
         flywheel.init();
         ballKickers.retractRight();
         ballKickers.retractLeft();
+
+
+        //alliance selection
         while(!allianceSelected){
             telemetry.addData("Select alliance with Dpad","");
             telemetry.addData("Left=Blue","");
@@ -117,11 +133,11 @@ public class IntermediateTeleop extends LinearOpMode {
             if(gamepad1.dpad_right){
                 redAlliance=true;
                 allianceSelected=true;
-                limelight.setPipeline(3);
+                limelight.setPipeline(4);
             } if(gamepad1.dpad_left){
                 redAlliance=false;
                 allianceSelected=true;
-                limelight.setPipeline(4);
+                limelight.setPipeline(3);
             }
             telemetry.update();
         }
@@ -149,50 +165,48 @@ public class IntermediateTeleop extends LinearOpMode {
             if(gamepad2.dpad_right){
                 limelight.setPipeline(4);
             }
-
-
-            if(!automatedDrive) {
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y,   // forward/back
-                        -gamepad1.left_stick_x,   // strafe
-                        -gamepad1.right_stick_x,  // rotation
-                        true                     // field-centric=false
-                );
+            //heading lock setup
+            controller.setCoefficients(follower.constants.coefficientsHeadingPIDF);
+            double targetX;
+            if(redAlliance){
+                targetX=144;
+            }else{
+                targetX=0;
             }
-            //Aim at goal
-            if (gamepad1.y) {
-                automatedDrive = true;
-                double targetX;
-                if(redAlliance){
-                    targetX=144;
-                }else{
-                    targetX=0;
-                }
-                double targetY = 144;
+            double targetY = 144;
 
-                double robotX = follower.getPose().getX();
-                double robotY = follower.getPose().getY();
+            double robotX = follower.getPose().getX();
+            double robotY = follower.getPose().getY();
 
-                double dx = targetX - robotX;
-                double dy = targetY - robotY;
+            double dx = targetX - robotX;
+            double dy = targetY - robotY;
 
-                double headingToTarget = Math.atan(dy/dx)+Math.toRadians(180);
+            double headingGoal = Math.atan(dy/dx)+Math.toRadians(180);
 
-                Pose targetPose = new Pose(robotX, robotY, headingToTarget);
-                follower.holdPoint(targetPose);
-
-
+            if(follower.getCurrentPath() == null){
+                controller.updateError(0);
             }
+            controller.updateError(MathFunctions.getTurnDirection(follower.getPose().getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(follower.getPose().getHeading(), headingGoal));
+
+
+            if (headingLock) {
+                follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, controller.run());
+            }
+            else{
+                follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
+            }
+
             if(gamepad1.b){
-                follower.startTeleopDrive();
-                automatedDrive = false;
+                headingLock=false;
+            } if(gamepad1.a){
+                headingLock=true;
             }
             //////////////
             //Mechansims//
             //////////////
 
             //intake
-                intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
+                intake.setPower(gamepad1.right_trigger-gamepad1.left_trigger);
 
             //flywheel
 
@@ -201,23 +215,23 @@ public class IntermediateTeleop extends LinearOpMode {
 
 
             if (indexMode) {
-                if (gamepad2.right_bumper) {
+                if (gamepad1.right_bumper) {
                     launchRight = true;
                 }
-                if (gamepad2.left_bumper) {
+                if (gamepad1.left_bumper) {
                     launchLeft = true;
                 }
-                if (gamepad2.b) {
+                if (gamepad1.b) {
                     launchLeft = false;
                     launchRight = false;
                 }
                 launchE = false;
             } else {
-                if (gamepad2.right_bumper || gamepad2.left_bumper) {
+                if (gamepad1.right_bumper || gamepad1.left_bumper) {
                     launchE = true;
                     launchQueue = 3;
                 }
-                if (gamepad2.b) {
+                if (gamepad1.b) {
                     launchE = false;
                     launchQueue = 0;
                 }
@@ -225,9 +239,7 @@ public class IntermediateTeleop extends LinearOpMode {
 
             //launch logic
 
-            if (limelight.getDistance() == -1) {
-                launchVel = defaultLaunchVel;
-            } else {
+            if (limelight.getDistance() != -1) {
                 launchVel = lut.get(limelight.getDistance());
             }
 
@@ -351,5 +363,7 @@ public class IntermediateTeleop extends LinearOpMode {
 
         }
     }
+
 }
+
 //green bull party at 4470 lennox blvd. november 3rd 2030

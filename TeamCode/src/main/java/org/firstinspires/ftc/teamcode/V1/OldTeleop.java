@@ -27,6 +27,7 @@ public class OldTeleop extends LinearOpMode {
     private int[][] balls;
     private static double ejectVel = 600;
     private static double defaultLaunchVel =1100;
+    private static double defaultIntakePower = -0.5;
     private static double spinUpPower = 1;
     private static double UpRightPos=260;
     private static double UpLeftPos=220;
@@ -137,8 +138,10 @@ public class OldTeleop extends LinearOpMode {
             //////////////
 
             //intake
-                intake.setPower(gamepad2.right_trigger-gamepad2.left_trigger);
-
+            if(gamepad2.right_trigger>0.1||gamepad2.left_trigger>0.1) {
+                intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
+            } else
+                intake.setPower(defaultIntakePower);
             //flywheel
 
             //power calculations
@@ -160,15 +163,16 @@ public class OldTeleop extends LinearOpMode {
 
 //
 
-                if(limelight.getDistance()==-1){
-                    launchVel=defaultLaunchVel;
-                }else{
-                    launchVel=lut.get(limelight.getDistance());
-                }
+//                if(limelight.getDistance()==-1){
+//                    launchVel=defaultLaunchVel;
+//                }else{
+//                    launchVel=lut.get(limelight.getDistance());
+//                }
+            launchVel=defaultLaunchVel;
             //Kicker logic
             if(launchRight) {
                 ballKickers.retractLeft();
-                if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
+                if (flywheel.getVelocity() < launchVel+20 && flywheel.getVelocity() > launchVel-20) {
                     ballKickers.kickRight();
                 }
             }
@@ -179,7 +183,7 @@ public class OldTeleop extends LinearOpMode {
 
             if(launchLeft) {
                 ballKickers.retractRight();
-                if (flywheel.getVelocity() < launchVel+40 && flywheel.getVelocity() > launchVel-40) {
+                if (flywheel.getVelocity() < launchVel+20 && flywheel.getVelocity() > launchVel-20) {
                     ballKickers.kickLeft();
                 }
             }
@@ -198,8 +202,10 @@ public class OldTeleop extends LinearOpMode {
             ballKickers.update();
             intake.update();
 
-
+            telemetry.addData("launchLeft", launchLeft);
+            telemetry.addData("launchRight", launchRight);
             telemetry.addData("Angle From Goal", limelight.getAngle());
+            telemetry.addData("Distance From Goal", limelight.getDistance());
             telemetry.addData("Wheel speed ", flywheel.getVelocity());
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());

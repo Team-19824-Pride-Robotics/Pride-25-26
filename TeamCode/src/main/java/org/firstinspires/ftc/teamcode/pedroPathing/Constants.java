@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.arcrobotics.ftclib.command.MecanumControllerCommand;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
@@ -14,8 +15,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+@Configurable
 
 public class Constants {
+    private static double pH = 1;
+    private static double iH = 0;
+    private static double dH = 0.01;
+    private static double fH = 0;
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(11.3)
             .forwardZeroPowerAcceleration(-76.91)
@@ -27,10 +33,10 @@ public class Constants {
                     0.025
             ))
             .headingPIDFCoefficients(new PIDFCoefficients(
-                    1,
-                    0,
-                    0.01,
-                    0
+                    pH,
+                    iH,
+                    dH,
+                    fH
             ))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
                     0.01,
