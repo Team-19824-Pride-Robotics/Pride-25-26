@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
 import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "redAuto")
+@Autonomous(name = "Close Red Auto")
 @Configurable
 
 public class CloseRedAuto_12 extends OpMode {
@@ -30,18 +30,19 @@ public class CloseRedAuto_12 extends OpMode {
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
-    private final Pose startPose = new Pose(116, 172, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(85, 95, Math.toRadians(44)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
-    private final Pose lineup1Pose = new Pose(90, 87.5, Math.toRadians(0)); // Highest (First Set)
-    private final Pose gobble1Pose = new Pose(120, 87.5, Math.toRadians(0)); // Highest (First Set)
-    private final Pose lineup2Pose = new Pose(89, 64, Math.toRadians(0)); // Middle (Second Set)
-    private final Pose gobble2Pose = new Pose(135, 64, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose startPose = new Pose(88, 135, Math.toRadians(90)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(85, 92, Math.toRadians(43)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
+    private final Pose lineup1Pose = new Pose(85, 87, Math.toRadians(0)); // Highest (First Set)
+    private final Pose gobble1Pose = new Pose(125, 87, Math.toRadians(0)); // Highest (First Set)
+    private final Pose lineup2Pose = new Pose(85, 65, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble2Pose = new Pose(130, 65, Math.toRadians(0)); // Middle (Second Set)
     private final Pose gateOpenPose = new Pose(135, 76, Math.toRadians(0));
-    private final Pose scorePose2 = new Pose(85, 95, Math.toRadians(42));
-    private final Pose scorePose3 = new Pose(85, 95, Math.toRadians(46));
-    private final Pose lineup3Pose = new Pose(89, 43, Math.toRadians(0)); // Middle (Second Set)
-    private final Pose gobble3Pose = new Pose(132, 43, Math.toRadians(0)); // Middle (Second Set)
-    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, openGate, scorePickup2, grabPickup3, scorePickup3, park;
+    private final Pose scorePose2 = new Pose(82, 92, Math.toRadians(40.5));
+    private final Pose scorePose3 = new Pose(82, 92, Math.toRadians(40.5));
+    private final Pose scorePose4 = new Pose(82, 92, Math.toRadians(40.5));
+    private final Pose lineup3Pose = new Pose(85, 40, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble3Pose = new Pose(130, 40, Math.toRadians(0)); // Middle (Second Set)
+    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3, park;
     private intake intake;
     private flywheel flywheel;
     private ballKickers ballKickers;
@@ -49,22 +50,28 @@ public class CloseRedAuto_12 extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private static int launchVel=1100;
+    private static int launchVel=1120;
     private static double UpRightPos=260;
-    private static double UpLeftPos=210;
-    private static double intakePower=0.7;
+    private static double UpLeftPos=220;
+    private static double intakePower=-0.7;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
+    private static double indexWait=0.75;
     private static double colorSensorTimeout=2;
-    private double DownRightPos=215;
-    private double DownLeftPos=260;
+    private static double DownRightPos=210;
+    private static double DownLeftPos=280;
+    private static int motif=0;
     private boolean launch=false;
     private boolean startNextPose=true;
+    private static double scoreHeadingTolerance=0.1;
+    private static double scoreTranslationalConstraint=0.5;
     public void buildPaths() {
 
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, scorePose))
-                .setConstantHeadingInterpolation(startPose.getHeading())
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
                 .build();
 
         /* grabPickup1 PathChain --> lines up for the first set of artifacts, then
@@ -73,7 +80,6 @@ public class CloseRedAuto_12 extends OpMode {
         grabPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, lineup1Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), lineup1Pose.getHeading())
-                //.addTemporalCallback(1, intake_change(1))
                 .addPath(new BezierLine(lineup1Pose, gobble1Pose))
                 .setConstantHeadingInterpolation(lineup1Pose.getHeading())
                 .build();
@@ -81,8 +87,10 @@ public class CloseRedAuto_12 extends OpMode {
         /* scorePickup1 PathChain --> moves to the scoring position  */
 
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(gobble1Pose, scorePose))
-                .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(gobble1Pose, scorePose2))
+                .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose2.getHeading())
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
                 .build();
 
         /* grabPickup2 PathChain --> lines up for the second set of artifacts, then
@@ -90,51 +98,51 @@ public class CloseRedAuto_12 extends OpMode {
 
         grabPickup2 = follower.pathBuilder()
 
-                .addPath(new BezierLine(scorePose, lineup2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), lineup2Pose.getHeading())
+                .addPath(new BezierLine(scorePose2, lineup2Pose))
+                .setLinearHeadingInterpolation(scorePose2.getHeading(), lineup2Pose.getHeading())
                 .addPath(new BezierLine(lineup2Pose, gobble2Pose))
                 .setConstantHeadingInterpolation(lineup2Pose.getHeading())
                 .build();
-        openGate = follower.pathBuilder()
-                .addPath(
-                        new BezierCurve(
-                                gobble2Pose,
-                                new Pose(121.522, 22.478),
-                                new Pose(60.878, 83.590),
-                                gateOpenPose
-                        )
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-                .build();
+//        openGate = follower.pathBuilder()
+//                .addPath(
+//                        new BezierCurve(
+//                                gobble2Pose,
+//                                new Pose(121.522, 22.478),
+//                                new Pose(60.878, 83.590),
+//                                gateOpenPose
+//                        )
+//                )
+//                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+//                .build();
         /* scorePickup2 PathChain --> moves from the gobble2Pose back to the scoring position  */
 
         scorePickup2 = follower.pathBuilder()
-                .addPath(
-                        new BezierCurve(
-                                gateOpenPose,
-                                scorePose2
-                        )
-                )
-                .setLinearHeadingInterpolation(gobble2Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(lineup2Pose, scorePose3))
+                .setLinearHeadingInterpolation(lineup2Pose.getHeading(), scorePose3.getHeading())
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
                 .build();
+
 
 
 
         grabPickup3 = follower.pathBuilder()
 
-                .addPath(new BezierLine(scorePose, lineup3Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), lineup3Pose.getHeading())
+                .addPath(new BezierLine(scorePose3, lineup3Pose))
+                .setLinearHeadingInterpolation(scorePose3.getHeading(), lineup3Pose.getHeading())
                 .addPath(new BezierLine(lineup3Pose, gobble3Pose))
                 .setConstantHeadingInterpolation(lineup3Pose.getHeading())
                 .build();
 
         scorePickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(gobble3Pose, scorePose))
-                .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(gobble3Pose, scorePose4))
+                .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose4.getHeading())
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
                 .build();
 
         park = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, lineup2Pose))
+                .addPath(new BezierLine(scorePose4, lineup2Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), gobble1Pose.getHeading())
                 .build();
 
@@ -166,7 +174,7 @@ public class CloseRedAuto_12 extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     launch=true;
-                    launchArtifactsE();
+                    launchArtifactsI();
                     if(startNextPose) {
                         follower.followPath(grabPickup1, true);
                         startIntake();
@@ -177,8 +185,8 @@ public class CloseRedAuto_12 extends OpMode {
             case 2:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-                        stopIntake();
-                        follower.followPath(openGate, true);
+//                        stopIntake();
+//                        follower.followPath(openGate, true);
                         setPathState(3);
                 }
                 break;
@@ -195,7 +203,7 @@ public class CloseRedAuto_12 extends OpMode {
 //launch 2nd set, go to pickup 3rd set
             case 4:
                 if(!follower.isBusy()) {
-                    launchArtifactsE();
+                    launchArtifactsI();
                     if(startNextPose) {
                         startIntake();
                         follower.followPath(grabPickup2, true);
@@ -214,7 +222,7 @@ public class CloseRedAuto_12 extends OpMode {
 //launch 3rd set, go to pickup 4th set
             case 6:
                 if(!follower.isBusy()) {
-                    launchArtifactsE();
+                    launchArtifactsI();
                     startIntake();
                     follower.followPath(grabPickup3,true);
                     setPathState(7);
@@ -232,7 +240,7 @@ public class CloseRedAuto_12 extends OpMode {
             case 8:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-                    launchArtifactsE();
+                    launchArtifactsI();
                     stopIntake();
                     follower.followPath(park, false);
                     setPathState(-1);
@@ -330,8 +338,9 @@ public class CloseRedAuto_12 extends OpMode {
     }
     public void launchArtifactsE() {
         actionTimer.resetTimer();
-        while((Math.abs(flywheel.getVelocity()-launchVel)>20)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
+        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
             flywheel.update(launchVel);
+            follower.update();
             telemetry.addData("launchVel", flywheel.getVelocity());
             telemetry.update();
         }
@@ -345,21 +354,95 @@ public class CloseRedAuto_12 extends OpMode {
         actionTimer.resetTimer();
         while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
             flywheel.update(launchVel);
+            follower.update();
         }
-        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)||(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
             flywheel.update(launchVel);
+            follower.update();
         }
-        actionTimer.resetTimer();
-        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
-            flywheel.update(launchVel);
-        }
+//        actionTimer.resetTimer();
+//        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
+//            flywheel.update(launchVel);
+//        }
         kickBoth();
 
         startNextPose=true;
     }
+    public void launchArtifactsI(){
+        if(motif==-1){
+            launchArtifactsE();
+        } else{
+            actionTimer.resetTimer();
+            while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
+                flywheel.update(launchVel);
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+                follower.update();
+            }
+            int leftColor=colorSensors.getColorLeft();
+            int rightColor=colorSensors.getColorRight();
+            if(motif==0){
+                chooseI(2, leftColor, rightColor);
+            }else{
+                chooseI(1, leftColor, rightColor);
+            }
+            actionTimer.resetTimer();
+            while(actionTimer.getElapsedTimeSeconds()<indexWait){
+                flywheel.update(launchVel);
+                follower.update();
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+            }
+            leftColor=colorSensors.getColorLeft();
+            rightColor=colorSensors.getColorRight();
+            if(motif==1){
+                chooseI(2, leftColor, rightColor);
+            }else{
+                chooseI(1, leftColor, rightColor);
+            }
+            actionTimer.resetTimer();
+            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
+                flywheel.update(launchVel);
+                follower.update();
+            }
+            while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+                flywheel.update(launchVel);
+                follower.update();
+            }
+            while(actionTimer.getElapsedTimeSeconds()<indexWait){
+                flywheel.update(launchVel);
+                follower.update();
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+            }
+            kickBoth();
+        }
+        startNextPose=true;
+    }
+    public void chooseI(int targetColor, int leftColor, int rightColor){
+        if(leftColor==targetColor&&rightColor==targetColor){
+            if(distanceSensors.getSide()==1){
+                kickRight();
+            }else {
+                kickLeft();
+            }
+        } else if (leftColor==targetColor) {
+            kickLeft();
+        } else if (rightColor==targetColor) {
+            kickRight();
+        } else{
+            if(distanceSensors.getSide()==1){
+                kickRight();
+            }
+            else {
+                kickLeft();
+            }
+        }
+    }
     public void kickLeft(){
-        while(Math.abs(flywheel.getVelocity()-launchVel)>20){
+        while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
             flywheel.update(launchVel);
+            follower.update();
             telemetry.addData("launchVel", flywheel.getVelocity());
             telemetry.update();
         }
@@ -372,8 +455,9 @@ public class CloseRedAuto_12 extends OpMode {
         ballKickers.update();
     }
     public void kickRight(){
-        while(Math.abs(flywheel.getVelocity()-launchVel)>20){
+        while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
             flywheel.update(launchVel);
+            follower.update();
             telemetry.addData("launchVel", flywheel.getVelocity());
             telemetry.update();
         }
@@ -381,19 +465,22 @@ public class CloseRedAuto_12 extends OpMode {
         ballKickers.update();
         while(ballKickers.getRightPos()<UpRightPos){
             flywheel.update(launchVel);
+            follower.update();
         }
         ballKickers.retractRight();
         ballKickers.update();
     }
     public void kickBoth(){
-        while(Math.abs(flywheel.getVelocity()-launchVel)>20){
+        while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
             flywheel.update(launchVel);
+            follower.update();
         }
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
         while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
             flywheel.update(launchVel);
+            follower.update();
         }
 
         ballKickers.retractRight();

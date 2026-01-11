@@ -30,7 +30,7 @@ public class IntermediateTeleop extends LinearOpMode {
     private Follower follower;
     public Pose currentPose;
     public Pose startingPose = new Pose(64, 140, Math.toRadians(90));
-//mech subsystem declarations
+    //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
    private ballKickers ballKickers;
@@ -38,29 +38,29 @@ public class IntermediateTeleop extends LinearOpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
     //fun variables
-    private int[][] balls;
-    private static double ejectVel = 600;
-    private static double defaultLaunchVel =1100;
-    private static double spinUpPower = 1;
+    private static double intakePowerDampening = 0.5;
     private static double UpRightPos=260;
     private static double UpLeftPos=220;
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private double launchVel=0;
+    private double launchVel=1100;
     private static double DownRightPos=210;
     private static double DownLeftPos=280;
-    private boolean automatedDrive=false;
-    private boolean allianceSelected=false;
-    private boolean redAlliance=false;
-    private double leftKickerPos;
-    private double rightKickerPos;
     private boolean indexMode=false;
     private boolean launchE=false;
     private int launchQueue=3;
-    double targetHeading = Math.toRadians(180); // Radians
+    //Alliance selection
+    private boolean allianceSelected=false;
+    private boolean redAlliance=false;
+    //Heading lock
     boolean headingLock = false;
+    boolean switchDrive=false;
+    //Hardware reads
+    private double leftKickerPos;
+    private double rightKickerPos;
+    private double flywheelVelocity;
 
-    private
+
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
@@ -150,22 +150,23 @@ public class IntermediateTeleop extends LinearOpMode {
         follower.startTeleopDrive();
         while (opModeIsActive()) {
             follower.update();
+            //Hardware reads
             leftKickerPos= ballKickers.getLeftPos();
             rightKickerPos= ballKickers.getRightPos();
+            currentPose=follower.getPose();
+            flywheelVelocity=flywheel.getVelocity();
 
-            //drive control
 
-
-            if (gamepad1.options) {
-                imu.resetYaw();
-            }
+            //Alliance reselection selection
             if(gamepad2.dpad_left){
+                redAlliance=false;
                 limelight.setPipeline(3);
             }
             if(gamepad2.dpad_right){
+                redAlliance=true;
                 limelight.setPipeline(4);
             }
-            //heading lock setup
+            //heading lock and drive control
             controller.setCoefficients(follower.constants.coefficientsHeadingPIDF);
             double targetX;
             if(redAlliance){
@@ -175,18 +176,18 @@ public class IntermediateTeleop extends LinearOpMode {
             }
             double targetY = 144;
 
-            double robotX = follower.getPose().getX();
-            double robotY = follower.getPose().getY();
+            double robotX = currentPose.getX();
+            double robotY = currentPose.getY();
 
             double dx = targetX - robotX;
             double dy = targetY - robotY;
 
-            double headingGoal = Math.atan(dy/dx)+Math.toRadians(180);
+            double headingGoal = Math.atan(dy/dx);
 
             if(follower.getCurrentPath() == null){
                 controller.updateError(0);
             }
-            controller.updateError(MathFunctions.getTurnDirection(follower.getPose().getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(follower.getPose().getHeading(), headingGoal));
+            controller.updateError(MathFunctions.getTurnDirection(currentPose.getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), headingGoal));
 
 
             if (headingLock) {
@@ -201,19 +202,22 @@ public class IntermediateTeleop extends LinearOpMode {
             } if(gamepad1.a){
                 headingLock=true;
             }
+            if(gamepad1.x){
+                if(limelight.isValid()){
+                    follower.setPose(limelight.relocalize(follower.getHeading()));
+                }
+            }
             //////////////
             //Mechansims//
             //////////////
 
             //intake
-                intake.setPower(gamepad1.right_trigger-gamepad1.left_trigger);
-
-            //flywheel
-
-            //power calculations
+                intake.setPower((gamepad1.right_trigger-gamepad1.left_trigger)*intakePowerDampening);
 
 
 
+
+            //Launch type selection
             if (indexMode) {
                 if (gamepad1.right_bumper) {
                     launchRight = true;
@@ -273,7 +277,7 @@ public class IntermediateTeleop extends LinearOpMode {
                 //Launch logic
                 if (launchRight) {
                     ballKickers.retractLeft();
-                    if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && rightKickerPos < DownRightPos) {
+                    if ((flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40) && rightKickerPos < DownRightPos) {
                         if (launchQueue == 1) {
                             if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0){
                                 ballKickers.kickRight();
@@ -286,7 +290,7 @@ public class IntermediateTeleop extends LinearOpMode {
                 }
                 if (launchLeft) {
                     ballKickers.retractRight();
-                    if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && leftKickerPos < DownLeftPos) {
+                    if ((flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40) && leftKickerPos < DownLeftPos) {
                         if (launchQueue == 1) {
                             ballKickers.kickRight();
                             ballKickers.kickLeft();
@@ -316,7 +320,7 @@ public class IntermediateTeleop extends LinearOpMode {
             } else {
                 if (launchRight) {
                     ballKickers.retractLeft();
-                    if (flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40  && rightKickerPos < DownRightPos) {
+                    if (flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40  && rightKickerPos < DownRightPos) {
                         ballKickers.kickRight();
                     }
                 }
@@ -327,7 +331,7 @@ public class IntermediateTeleop extends LinearOpMode {
 
                 if (launchLeft) {
                     ballKickers.retractRight();
-                    if (flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40  && leftKickerPos < DownLeftPos) {
+                    if (flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40  && leftKickerPos < DownLeftPos) {
                         ballKickers.kickLeft();
                     }
                 }
@@ -339,22 +343,20 @@ public class IntermediateTeleop extends LinearOpMode {
 
 
             //update mechs
-            if(gamepad2.x){
-                flywheel.setPower(-spinUpPower);
-            }else {
-                flywheel.update(launchVel);
-            }
+
+            flywheel.update(launchVel);
             ballKickers.update();
             intake.update();
 
-
+            telemetry.addData("X", follower.getPose().getX());
+            telemetry.addData("Y", follower.getPose().getY());
+            telemetry.addData("Heading", follower.getPose().getHeading());
             telemetry.addData("Angle From Goal", limelight.getAngle());
-            telemetry.addData("Wheel speed ", flywheel.getVelocity());
+            telemetry.addData("Wheel speed ", flywheelVelocity);
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());
-            telemetry.addData("Right kciker pos: ", ballKickers.getRightPos());
-            telemetry.addData("Left kciker pos: ", ballKickers.getLeftPos());
-            telemetry.addData("Desired pos: ", ballKickers.getRightDesiredPos());
+            telemetry.addData("Right kciker pos: ", rightKickerPos);
+            telemetry.addData("Left kciker pos: ", leftKickerPos);
             telemetry.addData("launchE", launchE);
             telemetry.addData("launchQueue", launchQueue);
             telemetry.addData("launchRight", launchRight);

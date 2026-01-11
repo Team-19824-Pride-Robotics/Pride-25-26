@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 
 public class Constants {
-    private static double pH = 1;
+    private static double pH = 0.8;
     private static double iH = 0;
     private static double dH = 0.01;
     private static double fH = 0;
@@ -75,7 +75,7 @@ public class Constants {
 
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(7.5)
+            .forwardPodY(-7.5)
             .strafePodX(2.5)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pP")

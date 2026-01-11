@@ -34,8 +34,9 @@ public class limelight {
     }
     public int scanAuto() {
 
-        //int returned equals index of green in motif (0=GPP, 1=PGP, 2=PPG)
-        int pattern = 0;
+        //int returned equals index of green in motif (-1=error.
+        // , 0=GPP, 1=PGP, 2=PPG)
+        int pattern = -1;
         Timer timeout = new Timer();
         result = limelight.getLatestResult();
         for (int i = 0; i < 3; i++) {

@@ -142,10 +142,6 @@ public class OldTeleop extends LinearOpMode {
                 intake.setPower(gamepad2.right_trigger - gamepad2.left_trigger);
             } else
                 intake.setPower(defaultIntakePower);
-            //flywheel
-
-            //power calculations
-
 
 
             //ball kicking
