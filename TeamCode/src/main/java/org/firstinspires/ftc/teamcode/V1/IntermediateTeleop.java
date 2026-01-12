@@ -1,11 +1,16 @@
 package org.firstinspires.ftc.teamcode.V1;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.pathConstraints;
+
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -52,8 +57,9 @@ public class IntermediateTeleop extends LinearOpMode {
     //Alliance selection
     private boolean allianceSelected=false;
     private boolean redAlliance=false;
-    //Heading lock
+    //Pedro pathing party vars
     boolean headingLock = false;
+    private boolean automatedDrive=false;
     boolean switchDrive=false;
     //Hardware reads
     private double leftKickerPos;
@@ -167,29 +173,63 @@ public class IntermediateTeleop extends LinearOpMode {
                 limelight.setPipeline(4);
             }
             //heading lock and drive control
-            controller.setCoefficients(follower.constants.coefficientsHeadingPIDF);
-            double targetX;
-            if(redAlliance){
-                targetX=144;
-            }else{
-                targetX=0;
+            if(headingLock) {
+                controller.setCoefficients(follower.constants.coefficientsHeadingPIDF);
+                double targetX;
+                if (redAlliance) {
+                    targetX = 144;
+                } else {
+                    targetX = 0;
+                }
+                double targetY = 144;
+
+                double robotX = currentPose.getX();
+                double robotY = currentPose.getY();
+
+                double dx = targetX - robotX;
+                double dy = targetY - robotY;
+
+                double headingGoal = Math.atan(dy / dx);
+
+                if (follower.getCurrentPath() == null) {
+                    controller.updateError(0);
+                }
+                controller.updateError(MathFunctions.getTurnDirection(currentPose.getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), headingGoal));
             }
-            double targetY = 144;
 
-            double robotX = currentPose.getX();
-            double robotY = currentPose.getY();
+            if (gamepad1.a) { //Go to far zone launch
+                automatedDrive = true;
+                if(redAlliance) {
+                    PathChain pathChain = follower.pathBuilder()
+                            .addPath(
+                                    new Path(
+                                            new BezierLine(
+                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                    new Pose(88, 19, Math.toRadians(79))                                        // end
+                                            ),
+                                            pathConstraints
+                                    )
+                            )
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
+                            .build();
+                    follower.followPath(pathChain);
+                } else{
+                    PathChain pathChain = follower.pathBuilder()
+                            .addPath(
+                                    new Path(
+                                            new BezierLine(
+                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                    new Pose(144-88, 19, Math.toRadians(111))                                         // end
+                                            ),
+                                            pathConstraints
+                                    )
+                            )
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
+                            .build();
+                    follower.followPath(pathChain);
+                }
 
-            double dx = targetX - robotX;
-            double dy = targetY - robotY;
-
-            double headingGoal = Math.atan(dy/dx);
-
-            if(follower.getCurrentPath() == null){
-                controller.updateError(0);
             }
-            controller.updateError(MathFunctions.getTurnDirection(currentPose.getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), headingGoal));
-
-
             if (headingLock) {
                 follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, controller.run());
             }
@@ -292,8 +332,10 @@ public class IntermediateTeleop extends LinearOpMode {
                     ballKickers.retractRight();
                     if ((flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40) && leftKickerPos < DownLeftPos) {
                         if (launchQueue == 1) {
-                            ballKickers.kickRight();
-                            ballKickers.kickLeft();
+                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) {
+                                ballKickers.kickRight();
+                                ballKickers.kickLeft();
+                            }
                         } else {
                             ballKickers.kickLeft();
                         }
@@ -304,16 +346,18 @@ public class IntermediateTeleop extends LinearOpMode {
                 if (launchLeft && leftKickerPos < UpLeftPos) {
                     ballKickers.retractLeft();
                     launchLeft = false;
-                    if (launchQueue > 0) {
+                    if (launchQueue > 1) {
                         launchRight = true;
+                    } if(launchQueue > 0){
                         launchQueue--;
                     }
                 }
                 if (launchRight && rightKickerPos > UpRightPos) {
                     ballKickers.retractRight();
                     launchRight = false;
-                    if (launchQueue > 0) {
+                    if (launchQueue > 1) {
                         launchLeft = true;
+                    }if(launchQueue > 0){
                         launchQueue--;
                     }
                 }
