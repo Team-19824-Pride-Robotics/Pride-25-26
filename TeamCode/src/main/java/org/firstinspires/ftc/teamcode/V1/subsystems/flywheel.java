@@ -45,7 +45,7 @@ public class flywheel {
     }
 
     public void update(double launchPower) {
-        if (launchPower != 0) {
+        if (launchPower != 0 && launchPower<getVelocity()-60) {
             flywheel.setPower(pidf.calculate(getVelocity(), launchPower));
             flywheelB.setPower(pidf.calculate(getVelocity(), launchPower));
         } else {

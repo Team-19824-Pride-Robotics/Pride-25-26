@@ -22,8 +22,6 @@ public class servoTuner extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         servo = hardwareMap.get(Servo.class, "servo");
-        flywheel = hardwareMap.get(DcMotor.class, "flywheel");
-        flywheelB = hardwareMap.get(DcMotor.class, "flywheelB");
         servoE = hardwareMap.get(AnalogInput.class, "E");
 
         waitForStart();
@@ -37,18 +35,7 @@ public class servoTuner extends LinearOpMode {
             if (gamepad1.b) {
                 servo.setPosition(up);
             }
-            if (gamepad1.right_bumper) {
-                flywheel.setPower(1);
-                flywheelB.setPower(1);
-            }
-            if (gamepad1.left_bumper) {
-                flywheel.setPower(-1);
-                flywheelB.setPower(-1);
-            }
-            if (!gamepad1.left_bumper && !gamepad1.right_bumper) {
-                flywheel.setPower(0);
-                flywheelB.setPower(0);
-            }
+
             telemetry.addData("Servo pos: ", servoE.getVoltage() / 3.3 * 360);
             telemetry.update();
         }

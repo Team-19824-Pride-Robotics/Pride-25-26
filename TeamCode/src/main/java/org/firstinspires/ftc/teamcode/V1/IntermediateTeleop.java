@@ -34,7 +34,7 @@ public class IntermediateTeleop extends LinearOpMode {
     //pedro stuff
     private Follower follower;
     public Pose currentPose;
-    public Pose startingPose = new Pose(64, 140, Math.toRadians(90));
+    public Pose startingPose = new Pose(144-88, 9, Math.toRadians(90));
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -42,18 +42,21 @@ public class IntermediateTeleop extends LinearOpMode {
     private limelight limelight;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
-    //fun variables
-    private static double intakePowerDampening = 0.5;
-    private static double UpRightPos=260;
+    //intake logic
+    private static double intakePowerDampening = 0.8;
+    //launch logic
+    private static double UpRightPos=220;
     private static double UpLeftPos=220;
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private double launchVel=1100;
-    private static double DownRightPos=210;
-    private static double DownLeftPos=280;
+    private static double DownRightPos=290;
+    private static double DownLeftPos=290;
     private boolean indexMode=false;
     private boolean launchE=false;
-    private int launchQueue=3;
+    private int launchQueue=0;
+    //flywheel logic
+    private double launchVel=1100;
+
     //Alliance selection
     private boolean allianceSelected=false;
     private boolean redAlliance=false;
@@ -61,6 +64,8 @@ public class IntermediateTeleop extends LinearOpMode {
     boolean headingLock = false;
     private boolean automatedDrive=false;
     boolean switchDrive=false;
+    private static double scoreHeadingTolerance=0.1;
+    private static double scoreTranslationalConstraint=0.5;
     //Hardware reads
     private double leftKickerPos;
     private double rightKickerPos;
@@ -199,8 +204,10 @@ public class IntermediateTeleop extends LinearOpMode {
 
             if (gamepad1.a) { //Go to far zone launch
                 automatedDrive = true;
+                PathChain pathChain;// start
+// end
                 if(redAlliance) {
-                    PathChain pathChain = follower.pathBuilder()
+                    pathChain = follower.pathBuilder()
                             .addPath(
                                     new Path(
                                             new BezierLine(
@@ -210,24 +217,27 @@ public class IntermediateTeleop extends LinearOpMode {
                                             pathConstraints
                                     )
                             )
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(79))
+                            .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                            .setTranslationalConstraint(scoreTranslationalConstraint)
                             .build();
-                    follower.followPath(pathChain);
                 } else{
-                    PathChain pathChain = follower.pathBuilder()
+                    pathChain = follower.pathBuilder()
                             .addPath(
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(144-88, 19, Math.toRadians(111))                                         // end
+                                                    new Pose(144 - 88, 19, Math.toRadians(111))                                         // end
                                             ),
                                             pathConstraints
                                     )
                             )
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
+                            .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                            .setTranslationalConstraint(scoreTranslationalConstraint)
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(111))
                             .build();
-                    follower.followPath(pathChain);
                 }
+                follower.followPath(pathChain);
 
             }
             if (headingLock) {
@@ -239,6 +249,8 @@ public class IntermediateTeleop extends LinearOpMode {
 
             if(gamepad1.b){
                 headingLock=false;
+                automatedDrive=false;
+                follower.startTeleopDrive();
             } if(gamepad1.a){
                 headingLock=true;
             }
@@ -317,7 +329,7 @@ public class IntermediateTeleop extends LinearOpMode {
                 //Launch logic
                 if (launchRight) {
                     ballKickers.retractLeft();
-                    if ((flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40) && rightKickerPos < DownRightPos) {
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20 && rightKickerPos > DownRightPos) {
                         if (launchQueue == 1) {
                             if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0){
                                 ballKickers.kickRight();
@@ -330,7 +342,7 @@ public class IntermediateTeleop extends LinearOpMode {
                 }
                 if (launchLeft) {
                     ballKickers.retractRight();
-                    if ((flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40) && leftKickerPos < DownLeftPos) {
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos) {
                         if (launchQueue == 1) {
                             if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) {
                                 ballKickers.kickRight();
@@ -352,7 +364,7 @@ public class IntermediateTeleop extends LinearOpMode {
                         launchQueue--;
                     }
                 }
-                if (launchRight && rightKickerPos > UpRightPos) {
+                if (launchRight && rightKickerPos < UpRightPos) {
                     ballKickers.retractRight();
                     launchRight = false;
                     if (launchQueue > 1) {
@@ -364,18 +376,18 @@ public class IntermediateTeleop extends LinearOpMode {
             } else {
                 if (launchRight) {
                     ballKickers.retractLeft();
-                    if (flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40  && rightKickerPos < DownRightPos) {
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20   && rightKickerPos > DownRightPos) {
                         ballKickers.kickRight();
                     }
                 }
-                if (launchRight && rightKickerPos > UpRightPos) {
+                if (launchRight && rightKickerPos < UpRightPos) {
                     ballKickers.retractRight();
                     launchRight = false;
                 }
 
                 if (launchLeft) {
                     ballKickers.retractRight();
-                    if (flywheelVelocity < launchVel + 40 && flywheelVelocity > launchVel - 40  && leftKickerPos < DownLeftPos) {
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos) {
                         ballKickers.kickLeft();
                     }
                 }
