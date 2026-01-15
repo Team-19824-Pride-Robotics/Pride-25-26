@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.V1.Autos;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -18,10 +17,10 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
 import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Close Red Auto")
+@Autonomous(name = "Close Red Auto E 12")
 @Configurable
 
-public class CloseRedAuto_12 extends OpMode {
+public class CloseRedAuto_12E extends OpMode {
 
 
 
@@ -36,7 +35,7 @@ public class CloseRedAuto_12 extends OpMode {
     private final Pose gobble1Pose = new Pose(125, 87, Math.toRadians(0)); // Highest (First Set)
     private final Pose lineup2Pose = new Pose(85, 65, Math.toRadians(0)); // Middle (Second Set)
     private final Pose gobble2Pose = new Pose(130, 65, Math.toRadians(0)); // Middle (Second Set)
-    private final Pose gateOpenPose = new Pose(135, 76, Math.toRadians(0));
+    private final Pose gateOpenPose = new Pose(130, 75, Math.toRadians(0));
     private final Pose scorePose2 = new Pose(82, 92, Math.toRadians(40.5));
     private final Pose scorePose3 = new Pose(82, 92, Math.toRadians(40.5));
     private final Pose scorePose4 = new Pose(82, 92, Math.toRadians(40.5));
@@ -51,15 +50,15 @@ public class CloseRedAuto_12 extends OpMode {
     private distanceSensors distanceSensors;
 
     private static int launchVel=1120;
-    private static double UpRightPos=260;
+    private static double UpRightPos=135;
     private static double UpLeftPos=220;
+    private static double DownRightPos=90;
+    private static double DownLeftPos=290;
     private static double intakePower=-0.7;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
     private static double indexWait=0.75;
     private static double colorSensorTimeout=2;
-    private static double DownRightPos=210;
-    private static double DownLeftPos=280;
     private static int motif=0;
     private boolean launch=false;
     private boolean startNextPose=true;
@@ -174,7 +173,7 @@ public class CloseRedAuto_12 extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     launch=true;
-                    launchArtifactsI();
+                    launchArtifactsE();
                     if(startNextPose) {
                         follower.followPath(grabPickup1, true);
                         startIntake();
@@ -336,6 +335,9 @@ public class CloseRedAuto_12 extends OpMode {
     public void stopIntake(){
         intake.setPower(0);
     }
+    public int scanMotif(){
+        return limelight.scanAuto();
+    }
     public void launchArtifactsE() {
         actionTimer.resetTimer();
         while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
@@ -352,7 +354,7 @@ public class CloseRedAuto_12 extends OpMode {
             kickRight();
         }
         actionTimer.resetTimer();
-        while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
+        while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()>DownLeftPos)){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -401,7 +403,7 @@ public class CloseRedAuto_12 extends OpMode {
                 chooseI(1, leftColor, rightColor);
             }
             actionTimer.resetTimer();
-            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
+            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()>DownLeftPos)){
                 flywheel.update(launchVel);
                 follower.update();
             }
@@ -448,7 +450,7 @@ public class CloseRedAuto_12 extends OpMode {
         }
         ballKickers.kickLeft();
         ballKickers.update();
-        while(ballKickers.getLeftPos()>UpLeftPos){
+        while(ballKickers.getLeftPos()<UpLeftPos){
             flywheel.update(launchVel);
         }
         ballKickers.retractLeft();
@@ -478,7 +480,7 @@ public class CloseRedAuto_12 extends OpMode {
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
+        while((ballKickers.getRightPos()>UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
             flywheel.update(launchVel);
             follower.update();
         }

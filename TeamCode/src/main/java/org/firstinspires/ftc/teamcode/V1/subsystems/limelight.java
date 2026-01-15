@@ -20,7 +20,7 @@ public class limelight {
 
     private final Limelight3A limelight;
     private LLResult result;
-    public double intakingPower = 0;
+    private static double timeout=0.2;
 
     public limelight(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "lL");
@@ -37,13 +37,13 @@ public class limelight {
         //int returned equals index of green in motif (-1=error.
         // , 0=GPP, 1=PGP, 2=PPG)
         int pattern = -1;
-        Timer timeout = new Timer();
+        Timer timeoutTimer = new Timer();
         result = limelight.getLatestResult();
         for (int i = 0; i < 3; i++) {
             limelight.pipelineSwitch(i);
-            timeout.resetTimer();
-            while (result.getPipelineIndex() != i && timeout.getElapsedTimeSeconds()<0.2) {
-                if(timeout.getElapsedTimeSeconds()>0.2){
+            timeoutTimer.resetTimer();
+            while (result.getPipelineIndex() != i && timeoutTimer.getElapsedTimeSeconds()<timeout) {
+                if(timeoutTimer.getElapsedTimeSeconds()>0.2){
                     return 0;
                 }
                 result = limelight.getLatestResult();

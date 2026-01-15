@@ -1,42 +1,40 @@
 package org.firstinspires.ftc.teamcode.V1;
+
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.pathConstraints;
 
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.configuration.LynxConstants;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 
-
-import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
-import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
 import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
-import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
 import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
+import org.firstinspires.ftc.teamcode.V1.subsystems.flywheel;
+import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
+import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
-import java.util.List;
 
 @TeleOp
 @Configurable
+
 public class Teleop extends LinearOpMode {
-    //Pedro stuff
+
+    //pedro stuff
     private Follower follower;
     public Pose currentPose;
-    public Pose startingPose = new Pose(144-80, 172, Math.toRadians(0));
-    private TelemetryManager telemetryM;
-    private boolean automatedDrive=false;
-
+    public Pose startingPose = new Pose(144-88, 9, Math.toRadians(90));
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -44,96 +42,102 @@ public class Teleop extends LinearOpMode {
     private limelight limelight;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
-    //hardware reads
-    double rightKickerPos;
-    double leftKickerPos;
-    int flywheelVel;
-    int side;
-    int count;
+    //intake logic
+    private static double intakePowerDampening = 0.8;
+    //launch logic
+    private static double UpRightPos=135;
+    private static double UpLeftPos=220;
+    private boolean launchLeft=false;
+    private boolean launchRight=false;
+    private static double DownRightPos=90;
+    private static double DownLeftPos=280;
+    private boolean indexMode=false;
+    private boolean launchE=false;
+    private int launchQueue=0;
+    //flywheel logic\
+    private static double defaultLaunchVel=1100;
+    private double launchVel=defaultLaunchVel;
 
-    //Flywheel stuff
-    private static double defaultLaunchVel =1100;
+    //Alliance selection
+    private boolean allianceSelected=false;
+    private boolean redAlliance=false;
+    //Pedro pathing party vars
+    boolean headingLock = false;
+    private boolean automatedDrive=false;
+    boolean switchDrive=false;
+    private static double scoreHeadingTolerance=0.1;
+    private static double scoreTranslationalConstraint=0.5;
+    //Hardware reads
+    private double leftKickerPos;
+    private double rightKickerPos;
+    private double flywheelVelocity;
+
+
+
+    //Other stuff
     InterpLUT lut = new InterpLUT();
 
-
-    //Kicker positions
-    private static double UpRightPos=250;
-    private static double UpLeftPos=220;
-    private double DownRightPos=180;
-    private double DownLeftPos=280;
-
-    //Alliance color logic
-    private boolean allianceSelected=false; //only allows teleop to progress after alliance is selected
-    private boolean redAlliance=false; // durrrrr
-
-    //Launching logic
-    private boolean launchLeft=false; //When true left chamber launches and automatically retracts
-    private boolean launchRight=false; //When true right chamber launches and automatically retracts
-    private boolean launchE = false; //kickstarts efficient launch sequence
-    private boolean indexMode = false; //When false, robot launches artifacts as efficiently as possible, when true, launching is manual to index
-    private boolean block = true; //Kicks left kicker halfway to block space and prevent robot from picking up 4
-    private boolean stopIntaking=false; //Stops intake once robot is full, resets after trigger is released
-    private double launchVel=0; //desired launch velocity of launcher
-    private int launchQueue = 0; //artifact queue, used in E mode
-
-    //Park positions
-    private static double parkX=0; //park pos x
-    private static double parkY=0; //park pos y
-
-    //Telemetry
-    private ElapsedTime elapsedTime = new ElapsedTime();
-    //Bulk caching
-    private List<LynxModule> allHubs;
-    public LynxModule CONTROL_HUB, EXPANSION_HUB;
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-
-
-        //Interp table setup
-        lut.add(45, 950);
-        lut.add(48, 1000);
-        lut.add(56, 1100);
-        lut.add(60, 1120);
-        lut.add(70, 1140);
-        lut.add(80, 1160);
-        lut.add(90, 1180);
-        lut.add(100, 1200);
-        lut.add(110, 1260);
-        lut.add(120, 1280);
-        lut.add(130, 1340);
-        lut.add(140, 1360);
+        follower = Constants.createFollower(hardwareMap);
+        follower.setPose(startingPose);
+        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+        //Intep table setup
+        lut.add(0, 1000);
+        lut.add(48, 1080);
+        lut.add(55, 1100);
+        lut.add(60, 1100);
+        lut.add(65, 1120);
+        lut.add(70, 1120);
+        lut.add(75, 1140);
+        lut.add(80, 1140);
+        lut.add(85, 1200);
+        lut.add(90, 1240);
+        lut.add(95, 1280);
+        lut.add(100, 1300);
+        lut.add(105, 1320);
+        lut.add(110, 1360);
+        lut.add(115, 1380);
+        lut.add(120, 1400);
+        lut.add(125, 1420);
+        lut.add(130, 1440);
 
         lut.createLUT();
 
+        // Declare motor ok
+        // Absolutely yes make ID's match configuration
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("fLD");
+        DcMotor backLeftMotor = hardwareMap.dcMotor.get("bLD");
+        DcMotor frontRightMotor = hardwareMap.dcMotor.get("fRD");
+        DcMotor backRightMotor = hardwareMap.dcMotor.get("bRD");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+        //reverse drive motors
+        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Declare mechs
-        intake = new intake(hardwareMap );
+        intake = new intake(hardwareMap);
         limelight = new limelight(hardwareMap);
         flywheel = new flywheel(hardwareMap);
         ballKickers = new ballKickers(hardwareMap);
         colorSensors = new colorSensors(hardwareMap);
-        distanceSensors= new distanceSensors(hardwareMap);
+        distanceSensors = new distanceSensors(hardwareMap);
+
+        //init mechs
+        limelight.init();
+        limelight.setPipeline(3);
+        flywheel.init();
+        ballKickers.retractRight();
+        ballKickers.retractLeft();
 
 
-
-        //init pedro
-        follower = Constants.createFollower(hardwareMap);
-        follower.setPose(startingPose);
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-        allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs){
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
-        if(allHubs.get(0).isParent() && LynxConstants.isEmbeddedSerialNumber(allHubs.get(0).getSerialNumber())) {
-            CONTROL_HUB = allHubs.get(0);
-            EXPANSION_HUB = allHubs.get(1);
-        } else {
-            CONTROL_HUB = allHubs.get(1);
-            EXPANSION_HUB = allHubs.get(0);
-        }
+        //alliance selection
         while(!allianceSelected){
             telemetry.addData("Select alliance with Dpad","");
             telemetry.addData("Left=Blue","");
@@ -141,282 +145,289 @@ public class Teleop extends LinearOpMode {
             if(gamepad1.dpad_right){
                 redAlliance=true;
                 allianceSelected=true;
-                limelight.setPipeline(3);
+                limelight.setPipeline(4);
             } if(gamepad1.dpad_left){
                 redAlliance=false;
                 allianceSelected=true;
-                limelight.setPipeline(4);
+                limelight.setPipeline(3);
             }
             telemetry.update();
         }
 
-        //init mechs
-        limelight.init();
-        flywheel.init();
-        ballKickers.retractLeft();
-        ballKickers.retractRight();
-        intake.setPower(0);
+
+
         waitForStart();
 
         if (isStopRequested()) return;
-
         follower.startTeleopDrive();
         while (opModeIsActive()) {
-            for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
+            follower.update();
+            //Hardware reads
             leftKickerPos= ballKickers.getLeftPos();
             rightKickerPos= ballKickers.getRightPos();
-            //localization
+            currentPose=follower.getPose();
+            flywheelVelocity=flywheel.getVelocity();
 
-            follower.update();
-            telemetryM.update();
-            if(limelight.isValid()) {
-                follower.setPose(limelight.relocalize(follower.getHeading()));
+
+            //Alliance reselection selection
+            if(gamepad2.dpad_left){
+                redAlliance=false;
+                limelight.setPipeline(3);
             }
-//drive control
-            if(!automatedDrive) {
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y,   // forward/back
-                        -gamepad1.left_stick_x,   // strafe
-                        -gamepad1.right_stick_x,  // rotation
-                        true                     // field-centric=false
-                );
+            if(gamepad2.dpad_right){
+                redAlliance=true;
+                limelight.setPipeline(4);
             }
-            //Aim at goal
-            if (gamepad1.y) {
-                automatedDrive = true;
+            //heading lock and drive control
+            if(headingLock) {
+                controller.setCoefficients(follower.constants.coefficientsHeadingPIDF);
                 double targetX;
-                if(redAlliance){
-                    targetX=144;
-                }else{
-                    targetX=0;
+                if (redAlliance) {
+                    targetX = 144;
+                } else {
+                    targetX = 0;
                 }
                 double targetY = 144;
 
-                double robotX = follower.getPose().getX();
-                double robotY = follower.getPose().getY();
+                double robotX = currentPose.getX();
+                double robotY = currentPose.getY();
 
                 double dx = targetX - robotX;
                 double dy = targetY - robotY;
 
-                double headingToTarget = Math.atan2(dy, dx);
+                double headingGoal = Math.atan(dy / dx);
 
-                Pose targetPose = new Pose(robotX, robotY, headingToTarget);
-                follower.holdPoint(targetPose);
-
-
-
+                if (follower.getCurrentPath() == null) {
+                    controller.updateError(0);
+                }
+                controller.updateError(MathFunctions.getTurnDirection(currentPose.getHeading(), headingGoal) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), headingGoal));
             }
-            if (gamepad1.a) { //Auto-park
+
+            if (gamepad1.a) { //Go to far zone launch
                 automatedDrive = true;
-                PathChain pathChain = follower.pathBuilder()
-                        .addPath(
-                                new Path(
-                                        new BezierLine(
-                                                new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                new Pose(parkX, parkY)                                         // end
-                                        ),
-                                        pathConstraints
-                                )
+                PathChain pathChain;// start
+// end
+                if(redAlliance) {
+                    pathChain = follower.pathBuilder()
+                            .addPath(
+                                    new Path(
+                                            new BezierLine(
+                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                    new Pose(88, 19, Math.toRadians(79))                                        // end
+                                            ),
+                                            pathConstraints
+                                    )
                             )
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.PI)
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(79))
+                            .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                            .setTranslationalConstraint(scoreTranslationalConstraint)
                             .build();
+                } else{
+                    pathChain = follower.pathBuilder()
+                            .addPath(
+                                    new Path(
+                                            new BezierLine(
+                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                    new Pose(144 - 88, 19, Math.toRadians(111))                                         // end
+                                            ),
+                                            pathConstraints
+                                    )
+                            )
+                            .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                            .setTranslationalConstraint(scoreTranslationalConstraint)
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(111))
+                            .build();
+                }
+                follower.followPath(pathChain);
 
-                    follower.followPath(pathChain);
             }
+            if (headingLock) {
+                follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, controller.run());
+            }
+            else{
+                follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
+            }
+
             if(gamepad1.b){
+                headingLock=false;
+                automatedDrive=false;
                 follower.startTeleopDrive();
-                automatedDrive = false;
+            } if(gamepad1.a){
+                headingLock=true;
             }
-
-
-
-
-
-
+            if(gamepad1.x){
+                if(limelight.isValid()){
+                    follower.setPose(limelight.relocalize(follower.getHeading()));
+                }
+            }
             //////////////
             //Mechansims//
             //////////////
 
-            //intake and block logic
+            //intake
+            intake.setPower((gamepad1.right_trigger-gamepad1.left_trigger)*intakePowerDampening);
 
-            //Check if transfer is full before unblocking
-            if(block) {
-                if (distanceSensors.getCount() > 1) {
-                    block = false;
-                    stopIntaking=true;
-                }
-            }
-            if((gamepad1.right_trigger>0.1 || gamepad1.left_trigger>0.1) && !stopIntaking) {
-                intake.setPower(gamepad1.left_trigger - gamepad1.right_trigger); //Sets power based on triggers
-            }
-            if(gamepad1.left_trigger<0.1){
-                stopIntaking=false; //resets intake
-            }
 
-            //indexing selecting
+
+
+            //Launch type selection
             if(gamepad2.start){
                 indexMode=true;
-            }
-            if(gamepad2.back){
+            } if(gamepad2.share){
                 indexMode=false;
             }
-
-
-
-            //ball kicking kickoff
-
-                if (indexMode) {
-                    if (gamepad2.right_bumper) {
-                        launchRight = true;
-                    }
-                    if (gamepad2.left_bumper) {
-                        launchLeft = true;
-                    }
-                    if (gamepad2.b) {
-                        launchLeft = false;
-                        launchRight = false;
-                    }
+            if (indexMode) {
+                if (gamepad2.right_bumper) {
+                    launchRight = true;
+                }
+                if (gamepad2.left_bumper) {
+                    launchLeft = true;
+                }
+                if (gamepad1.b) {
+                    launchLeft = false;
+                    launchRight = false;
+                }
+                launchE = false;
+            } else {
+                if (gamepad2.right_bumper || gamepad2.left_bumper) {
+                    launchE = true;
+                    launchQueue = 3;
+                }
+                if (gamepad1.b) {
                     launchE = false;
-                } else {
-                    if (gamepad2.right_bumper || gamepad2.left_bumper) {
-                        launchE = true;
-                        launchQueue = 3;
+                    launchQueue = 0;
+                }
+            }
+
+            //launch logic
+
+            if (limelight.getDistance() != -1) {
+                launchVel = lut.get(limelight.getDistance());
+            }
+
+
+
+            //Kicker logic for non index mode
+            if (!indexMode) {
+                //Kickstart first launch
+                if (launchE) {
+                    if (!launchLeft && !launchRight) {
+                        if(launchQueue>1) {
+                            if (distanceSensors.getSide() == 1) {
+                                launchRight = true;
+                            } else {
+                                launchLeft = true;
+                            }
+                            launchQueue--;
+                        }
+                        else{
+                            launchRight=true;
+                            launchLeft=true;
+                            launchQueue--;
+                            launchE=false;
+                        }
                     }
-                    if (gamepad2.b) {
-                        launchE = false;
-                        launchQueue = 0;
-                    }
+
                 }
 
-                //launch logic
-
-                    if (limelight.getDistance() == -1) {
-                        launchVel = defaultLaunchVel;
-                    } else {
-                        launchVel = lut.get(limelight.getDistance());
-                    }
 
 
-
-                //Kicker logic for non index mode
-                if (!indexMode) {
-                    //Kickstart first launch
-                    if (launchE) {
-                        if (distanceSensors.getSide() == 1) {
-                            launchRight = true;
-                            launchLeft = false;
+                //Launch logic
+                if (launchRight) {
+                    ballKickers.retractLeft();
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20 && rightKickerPos < DownRightPos) {
+                        if (launchQueue == 1) {
+                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0){
+                                ballKickers.kickRight();
+                                ballKickers.kickLeft();
+                            }
                         } else {
-                            launchRight = false;
-                            launchLeft = true;
-                        }
-                        launchE = false;
-                    }
-
-                    if (launchRight || launchLeft){
-                            block=false;
-                    }
-
-                    if(block){
-                        ballKickers.block();
-                    }
-                    //Launch logic
-                    if (launchRight) {
-                        ballKickers.retractLeft();
-                        if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && rightKickerPos < DownRightPos) {
-                            if (launchQueue == 1) {
-                                ballKickers.kickRight();
-                                ballKickers.kickLeft();
-                            } else {
-                                ballKickers.kickRight();
-                            }
-                        }
-                    }
-                    if (launchLeft) {
-                        ballKickers.retractRight();
-                        if ((flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40) && leftKickerPos < DownLeftPos) {
-                            if (launchQueue == 1) {
-                                ballKickers.kickRight();
-                                ballKickers.kickLeft();
-                                block=true;
-                            } else {
-                                ballKickers.kickLeft();
-                            }
-                        }
-                    }
-
-                    //Retraction logic
-                    if (launchLeft && leftKickerPos < UpLeftPos) {
-                        ballKickers.retractLeft();
-                        launchLeft = false;
-                        if (launchQueue > 0) {
-                            launchRight = true;
-                            launchQueue--;
-                        }
-                    }
-                    if (launchRight && rightKickerPos > UpRightPos) {
-                        ballKickers.retractRight();
-                        launchRight = false;
-                        if (launchQueue > 0) {
-                            launchLeft = true;
-                            launchQueue--;
-                        }
-                    }
-                } else {
-                    if (launchRight) {
-                        ballKickers.retractLeft();
-                        if (flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40  && rightKickerPos < DownRightPos) {
                             ballKickers.kickRight();
                         }
                     }
-                    if (launchRight && rightKickerPos > UpRightPos) {
-                        ballKickers.retractRight();
-                        launchRight = false;
-                    }
-
-                    if (launchLeft) {
-                        ballKickers.retractRight();
-                        if (flywheel.getVelocity() < launchVel + 40 && flywheel.getVelocity() > launchVel - 40  && leftKickerPos < DownLeftPos) {
+                }
+                if (launchLeft) {
+                    ballKickers.retractRight();
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos) {
+                        if (launchQueue == 1) {
+                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) {
+                                ballKickers.kickRight();
+                                ballKickers.kickLeft();
+                            }
+                        } else {
                             ballKickers.kickLeft();
                         }
                     }
-                    if (launchLeft && leftKickerPos < UpLeftPos) {
-                        ballKickers.retractLeft();
-                        launchLeft = false;
-                    }
                 }
 
+                //Retraction logic
+                if (launchLeft && leftKickerPos < UpLeftPos) {
+                    ballKickers.retractLeft();
+                    launchLeft = false;
+                    if (launchQueue > 1) {
+                        launchRight = true;
+                    } if(launchQueue > 0){
+                        launchQueue--;
+                    }
+                }
+                if (launchRight && rightKickerPos > UpRightPos) {
+                    ballKickers.retractRight();
+                    launchRight = false;
+                    if (launchQueue > 1) {
+                        launchLeft = true;
+                    }if(launchQueue > 0){
+                        launchQueue--;
+                    }
+                }
+            } else {
+                if (launchRight) {
+                    ballKickers.retractLeft();
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20   && rightKickerPos < DownRightPos) {
+                        ballKickers.kickRight();
+                    }
+                }
+                if (launchRight && rightKickerPos > UpRightPos) {
+                    ballKickers.retractRight();
+                    launchRight = false;
+                }
+
+                if (launchLeft) {
+                    ballKickers.retractRight();
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos) {
+                        ballKickers.kickLeft();
+                    }
+                }
+                if (launchLeft && leftKickerPos < UpLeftPos) {
+                    ballKickers.retractLeft();
+                    launchLeft = false;
+                }
+            }
+
+
             //update mechs
+
             flywheel.update(launchVel);
+            ballKickers.update();
             intake.update();
 
-            telemetry.addData("Loop Times", elapsedTime.milliseconds());
-            elapsedTime.reset();
-
-            //Basic telemetry
             telemetry.addData("X", follower.getPose().getX());
             telemetry.addData("Y", follower.getPose().getY());
             telemetry.addData("Heading", follower.getPose().getHeading());
-            telemetry.addData("launchE", launchE);
-            telemetry.addData("launchQueue", launchQueue);
             telemetry.addData("Angle From Goal", limelight.getAngle());
-            telemetry.addData("Wheel speed ", flywheel.getVelocity());
+            telemetry.addData("Wheel speed ", flywheelVelocity);
             telemetry.addData("Desired wheel speed", launchVel);
             telemetry.addData("Distance From Goal: ", limelight.getDistance());
-            telemetry.addData("Right kicker pos: ", rightKickerPos);
-            telemetry.addData("Left kicker pos: ", leftKickerPos);
-            telemetry.addData("Extra Count", distanceSensors.getCount());
-            telemetry.addData("Side", distanceSensors.getSide());
-
+            telemetry.addData("Right kciker pos: ", rightKickerPos);
+            telemetry.addData("Left kciker pos: ", leftKickerPos);
+            telemetry.addData("launchE", launchE);
+            telemetry.addData("launchQueue", launchQueue);
+            telemetry.addData("launchRight", launchRight);
+            telemetry.addData("launchQueue", launchLeft);
             telemetry.update();
-
-            //Panels telemetry
-            // Debug telemetry
-            telemetryM.debug("position", follower.getPose());
-            telemetryM.debug("velocity", follower.getVelocity());
 
         }
     }
+
 }
+
 //green bull party at 4470 lennox blvd. november 3rd 2030
