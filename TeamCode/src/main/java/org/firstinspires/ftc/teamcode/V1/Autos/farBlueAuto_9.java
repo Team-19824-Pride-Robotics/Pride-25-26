@@ -17,10 +17,10 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
 import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Far Blue Auto 12")
+@Autonomous(name = "Far Blue 9 (Roar)")
 @Configurable
 
-public class FarAuto_12E extends OpMode {
+public class farBlueAuto_9 extends OpMode {
 
 //Scores preload, close preset, middle preset and far preset
     //No indexing or gate opening yet
@@ -44,15 +44,13 @@ public class FarAuto_12E extends OpMode {
     private final Pose gateOpenPose = new Pose(144-135, 76, Math.toRadians(180));
     private final Pose scorePose2 = new Pose(144-85, 19, Math.toRadians(112));
     private final Pose scorePose3 = new Pose(144-88, 19, Math.toRadians(110.5));
-    private final Pose lineup3Pose = new Pose(144-90, 83, Math.toRadians(180)); // Closest (Second Set)
-    private final Pose gobble3Pose = new Pose(144-120, 83, Math.toRadians(180)); // Closest (Second Set)
-    private final Pose scorePose4 = new Pose(144-88, 19, Math.toRadians(112.5));
 
 
 
 
 
-    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3, park;
+
+    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, park;
     private intake intake;
     private flywheel flywheel;
     private ballKickers ballKickers;
@@ -73,75 +71,61 @@ public class FarAuto_12E extends OpMode {
     private boolean launch=false;
     private boolean startNextPose=true;
     public void buildPaths() {
-            scorePreload = follower.pathBuilder()
-                    .addPath(new BezierLine(startPose, scorePose))
-                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
-                    .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
-                    .setVelocityConstraint(scoreVelocityConstraint)
-                    .build();
+        scorePreload = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, scorePose))
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
+                .setVelocityConstraint(scoreVelocityConstraint)
+                .build();
 
         /* grabPickup1 PathChain --> lines up for the first set of artifacts, then
           turns on the intake and gobbles them up in a line  */
 
-            grabPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePose, lineup1Pose))
-                    .setLinearHeadingInterpolation(scorePose.getHeading(), lineup1Pose.getHeading())
-                    //.addTemporalCallback(1, intake_change(1))
-                    .addPath(new BezierLine(lineup1Pose, gobble1Pose))
-                    .setConstantHeadingInterpolation(lineup1Pose.getHeading())
-                    .build();
+        grabPickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, lineup1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), lineup1Pose.getHeading())
+                //.addTemporalCallback(1, intake_change(1))
+                .addPath(new BezierLine(lineup1Pose, gobble1Pose))
+                .setConstantHeadingInterpolation(lineup1Pose.getHeading())
+                .build();
 
-            /* scorePickup1 PathChain --> moves to the scoring position  */
+        /* scorePickup1 PathChain --> moves to the scoring position  */
 
-            scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobble1Pose, scorePose2))
-                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
-                    .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose2.getHeading())
-                    .setVelocityConstraint(scoreVelocityConstraint)
-                    .build();
+        scorePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(gobble1Pose, scorePose2))
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose2.getHeading())
+                .setVelocityConstraint(scoreVelocityConstraint)
+                .build();
 
         /* grabPickup2 PathChain --> lines up for the second set of artifacts, then
            turns on the intake and gobbles them up in a line  */
 
-            grabPickup2 = follower.pathBuilder()
+        grabPickup2 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scorePose2, lineup2Pose))
-                    .setLinearHeadingInterpolation(scorePose.getHeading(), lineup2Pose.getHeading())
-                    .addPath(new BezierLine(lineup2Pose, gobble2Pose))
-                    .setConstantHeadingInterpolation(lineup2Pose.getHeading())
-                    .build();
+                .addPath(new BezierLine(scorePose2, lineup2Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), lineup2Pose.getHeading())
+                .addPath(new BezierLine(lineup2Pose, gobble2Pose))
+                .setConstantHeadingInterpolation(lineup2Pose.getHeading())
+                .build();
 
-            scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(lineup2Pose, scorePose3))
-                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
-                    .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(lineup2Pose.getHeading(), scorePose2.getHeading())
-                    .setVelocityConstraint(scoreVelocityConstraint)
-                    .build();
+        scorePickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(lineup2Pose, scorePose3))
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setLinearHeadingInterpolation(lineup2Pose.getHeading(), scorePose2.getHeading())
+                .setVelocityConstraint(scoreVelocityConstraint)
+                .build();
 
 
-            grabPickup3 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scorePose3, lineup3Pose))
-                    .setLinearHeadingInterpolation(scorePose2.getHeading(), lineup3Pose.getHeading())
-                    .addPath(new BezierLine(lineup3Pose, gobble3Pose))
-                    .setConstantHeadingInterpolation(lineup3Pose.getHeading())
-                    .build();
 
-            scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobble3Pose, scorePose4))
-                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
-                    .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose3.getHeading())
-                    .setVelocityConstraint(scoreVelocityConstraint)
-                    .build();
-
-            park = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePose4, lineup2Pose))
-                    .setLinearHeadingInterpolation(scorePose3.getHeading(), gobble1Pose.getHeading())
-                    .build();
+        park = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose2, lineup2Pose))
+                .setLinearHeadingInterpolation(scorePose3.getHeading(), gobble1Pose.getHeading())
+                .build();
 
     }
 
@@ -216,30 +200,14 @@ public class FarAuto_12E extends OpMode {
                     setPathState(6);
                 }
                 break;
-//launch 3rd set, go to pickup 4th set
-            case 6:
-                if(!follower.isBusy()) {
-                    launchArtifactsE();
-                    startIntake();
-                    follower.followPath(grabPickup3,true);
-                    setPathState(7);
-                }
-                break;
-//go to launch 4th set
-            case 7:
-                if(!follower.isBusy()) {
-                    unBlock();
-                    follower.followPath(scorePickup3,true);
-                    setPathState(8);
-                }
-                break;
-//launch 4th set, go to park
+//Launch 3rd set and park
             case 8:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+
                 if(!follower.isBusy()) {
                     launchArtifactsE();
                     stopIntake();
                     follower.followPath(park, false);
+                    launchVel=0;
                     setPathState(-1);
                 }
                 break;

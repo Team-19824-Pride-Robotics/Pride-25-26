@@ -17,33 +17,31 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
 import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Far Blue Auto 9")
+@Autonomous(name = "Close Red 12")
 @Configurable
 
-public class FarBlueAuto_9 extends OpMode {
+public class CloseRedAuto extends OpMode {
 
-//Scores preload, close preset, middle preset and far preset
-    //No indexing or gate opening yet
+
 
 
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
-    private static double scoreHeadingTolerance=0.1;
-    private static double scoreTranslationalConstraint=0.5;
-
-    private final Pose startPose = new Pose(144-88, 9, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(144-88, 19, Math.toRadians(111)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
-    private final Pose lineup1Pose = new Pose(144-89, 33, Math.toRadians(180)); // Farthest (First Set)
-    private final Pose gobble1Pose = new Pose(144-130, 33, Math.toRadians(180)); // Farthest (First Set)
-    private final Pose lineup2Pose = new Pose(144-89, 57, Math.toRadians(180)); // Middle (Second Set)
-    private final Pose gobble2Pose = new Pose(144-125, 57, Math.toRadians(180)); // Middle (Second Set)
-    private final Pose gateOpenPose = new Pose(144-135, 76, Math.toRadians(180));
-    private final Pose scorePose2 = new Pose(144-85, 19, Math.toRadians(112));
-    private final Pose scorePose3 = new Pose(144-88, 19, Math.toRadians(110.5));
-
-    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, park;
+    private final Pose startPose = new Pose(88, 135, Math.toRadians(90)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(85, 92, Math.toRadians(40.5)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
+    private final Pose lineup1Pose = new Pose(85, 90, Math.toRadians(0)); // Highest (First Set)
+    private final Pose gobble1Pose = new Pose(125, 84, Math.toRadians(0)); // Highest (First Set)
+    private final Pose lineup2Pose = new Pose(85, 65, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble2Pose = new Pose(130, 65, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gateOpenPose = new Pose(130, 75, Math.toRadians(0));
+    private final Pose scorePose2 = new Pose(82, 92, Math.toRadians(40.5));
+    private final Pose scorePose3 = new Pose(82, 92, Math.toRadians(40.5));
+    private final Pose scorePose4 = new Pose(82, 92, Math.toRadians(40.5));
+    private final Pose lineup3Pose = new Pose(85, 43, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble3Pose = new Pose(130, 37, Math.toRadians(0)); // Middle (Second Set)
+    private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3, park;
     private intake intake;
     private flywheel flywheel;
     private ballKickers ballKickers;
@@ -51,26 +49,29 @@ public class FarBlueAuto_9 extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private static int launchVel=1320;
+    private static int launchVel=1120;
     private static double UpRightPos=135;
     private static double UpLeftPos=220;
     private static double DownRightPos=90;
-    private static double DownLeftPos=280;
-    private static double intakePower=-0.6;
-    private static double firstKickWait=0.5;
-    private static double thirdKickWait=0.5;
+    private static double DownLeftPos=290;
+    private static double intakePower=-0.8;
+    private static double firstKickWait=0;
+    private static double indexWait=0.75;
     private static double colorSensorTimeout=2;
-    private static double roarWait=3;
-
+    private static int motif=0;
     private boolean launch=false;
     private boolean startNextPose=true;
+    private static double scoreHeadingTolerance=0.1;
+    private static double scoreTranslationalConstraint=0.5;
+    private static double scoreVelocityConstraint=0;
     public void buildPaths() {
 
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
-                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
         /* grabPickup1 PathChain --> lines up for the first set of artifacts, then
@@ -79,7 +80,6 @@ public class FarBlueAuto_9 extends OpMode {
         grabPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(scorePose, lineup1Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), lineup1Pose.getHeading())
-                //.addTemporalCallback(1, intake_change(1))
                 .addPath(new BezierLine(lineup1Pose, gobble1Pose))
                 .setConstantHeadingInterpolation(lineup1Pose.getHeading())
                 .build();
@@ -88,9 +88,10 @@ public class FarBlueAuto_9 extends OpMode {
 
         scorePickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(gobble1Pose, scorePose2))
+                .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose2.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
-                .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose2.getHeading())
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
         /* grabPickup2 PathChain --> lines up for the second set of artifacts, then
@@ -99,7 +100,7 @@ public class FarBlueAuto_9 extends OpMode {
         grabPickup2 = follower.pathBuilder()
 
                 .addPath(new BezierLine(scorePose2, lineup2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), lineup2Pose.getHeading())
+                .setLinearHeadingInterpolation(scorePose2.getHeading(), lineup2Pose.getHeading())
                 .addPath(new BezierLine(lineup2Pose, gobble2Pose))
                 .setConstantHeadingInterpolation(lineup2Pose.getHeading())
                 .build();
@@ -118,16 +119,34 @@ public class FarBlueAuto_9 extends OpMode {
 
         scorePickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(lineup2Pose, scorePose3))
+                .setLinearHeadingInterpolation(lineup2Pose.getHeading(), scorePose3.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
-                .setLinearHeadingInterpolation(lineup2Pose.getHeading(), scorePose2.getHeading())
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
 
 
+
+        grabPickup3 = follower.pathBuilder()
+
+                .addPath(new BezierLine(scorePose3, lineup3Pose))
+                .setLinearHeadingInterpolation(scorePose3.getHeading(), lineup3Pose.getHeading())
+                .addPath(new BezierLine(lineup3Pose, gobble3Pose))
+                .setConstantHeadingInterpolation(lineup3Pose.getHeading())
+                .build();
+
+        scorePickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(gobble3Pose, scorePose4))
+                .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose4.getHeading())
+                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setVelocityConstraint(scoreVelocityConstraint)
+                .build();
+
         park = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose2, lineup2Pose))
-                .setLinearHeadingInterpolation(scorePose3.getHeading(), gobble1Pose.getHeading())
+                .addPath(new BezierLine(scorePose4, lineup2Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), gobble1Pose.getHeading())
                 .build();
 
     }
@@ -150,13 +169,6 @@ public class FarBlueAuto_9 extends OpMode {
                 intake.update();
                 follower.setMaxPower(1);  //slow down the path following if necessary
                 follower.followPath(scorePreload, true);
-                actionTimer.resetTimer();
-                while(actionTimer.getElapsedTimeSeconds()<roarWait){
-                    flywheel.update(launchVel);
-                    follower.update();
-                    telemetry.addData("launchVel", flywheel.getVelocity());
-                    telemetry.update();
-                }
                 startNextPose=false;
                 setPathState(1);
                 break;
@@ -178,7 +190,7 @@ public class FarBlueAuto_9 extends OpMode {
                 if(!follower.isBusy()) {
 //                        stopIntake();
 //                        follower.followPath(openGate, true);
-                    setPathState(3);
+                        setPathState(3);
                 }
                 break;
 //go to launch 2nd set
@@ -194,7 +206,7 @@ public class FarBlueAuto_9 extends OpMode {
 //launch 2nd set, go to pickup 3rd set
             case 4:
                 if(!follower.isBusy()) {
-                    launchArtifactsE();
+                    launchArtifactsI();
                     if(startNextPose) {
                         startIntake();
                         follower.followPath(grabPickup2, true);
@@ -213,13 +225,30 @@ public class FarBlueAuto_9 extends OpMode {
 //launch 3rd set, go to pickup 4th set
             case 6:
                 if(!follower.isBusy()) {
-                    launchArtifactsE();
+                    launchArtifactsI();
                     startIntake();
-                    follower.followPath(park,true);
+                    follower.followPath(grabPickup3,true);
+                    setPathState(7);
+                }
+                break;
+//go to launch 4th set
+            case 7:
+                if(!follower.isBusy()) {
+                    unBlock();
+                    follower.followPath(scorePickup3,true);
+                    setPathState(8);
+                }
+                break;
+//launch 4th set, go to park
+            case 8:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    launchArtifactsI();
+                    stopIntake();
+                    follower.followPath(park, false);
                     setPathState(-1);
                 }
                 break;
-
         }
     }
 
@@ -310,6 +339,9 @@ public class FarBlueAuto_9 extends OpMode {
     public void stopIntake(){
         intake.setPower(0);
     }
+    public int scanMotif(){
+        return limelight.scanAuto();
+    }
     public void launchArtifactsE() {
         actionTimer.resetTimer();
         while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
@@ -342,6 +374,77 @@ public class FarBlueAuto_9 extends OpMode {
 
         startNextPose=true;
     }
+    public void launchArtifactsI(){
+        if(motif==-1){
+            launchArtifactsE();
+        } else{
+            actionTimer.resetTimer();
+            while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
+                flywheel.update(launchVel);
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+                follower.update();
+            }
+            int leftColor=colorSensors.getColorLeft();
+            int rightColor=colorSensors.getColorRight();
+            if(motif==0){
+                chooseI(2, leftColor, rightColor);
+            }else{
+                chooseI(1, leftColor, rightColor);
+            }
+            actionTimer.resetTimer();
+            while(actionTimer.getElapsedTimeSeconds()<indexWait){
+                flywheel.update(launchVel);
+                follower.update();
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+            }
+            leftColor=colorSensors.getColorLeft();
+            rightColor=colorSensors.getColorRight();
+            if(motif==1){
+                chooseI(2, leftColor, rightColor);
+            }else{
+                chooseI(1, leftColor, rightColor);
+            }
+            actionTimer.resetTimer();
+            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()>DownLeftPos)){
+                flywheel.update(launchVel);
+                follower.update();
+            }
+            while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+                flywheel.update(launchVel);
+                follower.update();
+            }
+            while(actionTimer.getElapsedTimeSeconds()<indexWait){
+                flywheel.update(launchVel);
+                follower.update();
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+            }
+            kickBoth();
+        }
+        startNextPose=true;
+    }
+    public void chooseI(int targetColor, int leftColor, int rightColor){
+        if(leftColor==targetColor&&rightColor==targetColor){
+            if(distanceSensors.getSide()==1){
+                kickRight();
+            }else {
+                kickLeft();
+            }
+        } else if (leftColor==targetColor) {
+            kickLeft();
+        } else if (rightColor==targetColor) {
+            kickRight();
+        } else{
+            if(distanceSensors.getSide()==1){
+                kickRight();
+            }
+            else {
+                kickLeft();
+            }
+        }
+    }
     public void kickLeft(){
         while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
             flywheel.update(launchVel);
@@ -352,7 +455,6 @@ public class FarBlueAuto_9 extends OpMode {
         ballKickers.kickLeft();
         ballKickers.update();
         while(ballKickers.getLeftPos()>UpLeftPos){
-            follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.retractLeft();
@@ -360,31 +462,31 @@ public class FarBlueAuto_9 extends OpMode {
     }
     public void kickRight(){
         while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
-            follower.update();
             flywheel.update(launchVel);
+            follower.update();
             telemetry.addData("launchVel", flywheel.getVelocity());
             telemetry.update();
         }
         ballKickers.kickRight();
         ballKickers.update();
         while(ballKickers.getRightPos()<UpRightPos){
-            follower.update();
             flywheel.update(launchVel);
+            follower.update();
         }
         ballKickers.retractRight();
         ballKickers.update();
     }
     public void kickBoth(){
         while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
-            follower.update();
             flywheel.update(launchVel);
+            follower.update();
         }
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
         while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
-            follower.update();
             flywheel.update(launchVel);
+            follower.update();
         }
 
         ballKickers.retractRight();
