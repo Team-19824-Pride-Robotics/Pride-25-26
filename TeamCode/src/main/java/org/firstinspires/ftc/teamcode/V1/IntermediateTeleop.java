@@ -34,7 +34,7 @@ public class IntermediateTeleop extends LinearOpMode {
     //pedro stuff
     private Follower follower;
     public Pose currentPose;
-    public Pose startingPose = new Pose(144-88, 9, Math.toRadians(90));
+    public static Pose startingPose = new Pose();
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -57,6 +57,8 @@ public class IntermediateTeleop extends LinearOpMode {
     //flywheel logic\
     private static double defaultLaunchVel=1100;
     private double launchVel=defaultLaunchVel;
+    private boolean disableFlywheel=false;
+    private boolean unJam=false;
 
     //Alliance selection
     private boolean allianceSelected=false;
@@ -136,7 +138,9 @@ public class IntermediateTeleop extends LinearOpMode {
         ballKickers.retractRight();
         ballKickers.retractLeft();
 
-
+        if(startingPose == null){
+            startingPose = new Pose(144 - 88, 9, Math.toRadians(90));
+        }
         //alliance selection
         while(!allianceSelected){
             telemetry.addData("Select alliance with Dpad","");
@@ -266,8 +270,19 @@ public class IntermediateTeleop extends LinearOpMode {
 
             //intake
                 intake.setPower((gamepad1.right_trigger-gamepad1.left_trigger)*intakePowerDampening);
-
-
+            //Emergency flywheel control
+            if(gamepad1.dpad_down){
+                unJam=true;
+                disableFlywheel=false;
+            }
+            if(gamepad1.dpad_left){
+                unJam=false;
+                disableFlywheel=true;
+            }
+            if(gamepad1.dpad_up){
+                unJam=false;
+                disableFlywheel=false;
+            }
 
 
             //Launch type selection
@@ -300,11 +315,13 @@ public class IntermediateTeleop extends LinearOpMode {
             }
 
             //launch logic
-
-            if (limelight.getDistance() != -1) {
-                launchVel = lut.get(limelight.getDistance());
+            if(!unJam&&!disableFlywheel) {
+                if (limelight.getDistance() != -1) {
+                    launchVel = lut.get(limelight.getDistance());
+                }
+            } else if (disableFlywheel) {
+                launchVel=0;
             }
-
 
 
             //Kicker logic for non index mode
@@ -405,8 +422,11 @@ public class IntermediateTeleop extends LinearOpMode {
 
 
             //update mechs
-
-            flywheel.update(launchVel);
+            if(!unJam) {
+                flywheel.update(launchVel);
+            } else{
+                flywheel.setPower(-1);
+            }
             ballKickers.update();
             intake.update();
 

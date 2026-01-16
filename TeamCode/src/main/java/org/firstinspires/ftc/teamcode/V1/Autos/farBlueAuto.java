@@ -9,6 +9,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.V1.IntermediateTeleop;
 import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
 import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
@@ -37,14 +38,14 @@ public class farBlueAuto extends OpMode {
     private static double scoreVelocityConstraint=0;
     private final Pose startPose = new Pose(144-88, 9, Math.toRadians(90)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(144-88, 19, Math.toRadians(111)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
-    private final Pose lineup1Pose = new Pose(144-89, 33, Math.toRadians(180)); // Farthest (First Set)
-    private final Pose gobble1Pose = new Pose(144-130, 33, Math.toRadians(180)); // Farthest (First Set)
+    private final Pose lineup1Pose = new Pose(144-89, 36, Math.toRadians(180)); // Farthest (First Set)
+    private final Pose gobble1Pose = new Pose(144-125, 30, Math.toRadians(180)); // Farthest (First Set)
     private final Pose lineup2Pose = new Pose(144-89, 57, Math.toRadians(180)); // Middle (Second Set)
-    private final Pose gobble2Pose = new Pose(144-125, 57, Math.toRadians(180)); // Middle (Second Set)
+    private final Pose gobble2Pose = new Pose(144-127.5, 51, Math.toRadians(180)); // Middle (Second Set)
     private final Pose gateOpenPose = new Pose(144-135, 76, Math.toRadians(180));
     private final Pose scorePose2 = new Pose(144-85, 19, Math.toRadians(112));
     private final Pose scorePose3 = new Pose(144-88, 19, Math.toRadians(110.5));
-    private final Pose lineup3Pose = new Pose(144-90, 83, Math.toRadians(180)); // Closest (Second Set)
+    private final Pose lineup3Pose = new Pose(144-90, 77, Math.toRadians(180)); // Closest (Second Set)
     private final Pose gobble3Pose = new Pose(144-120, 83, Math.toRadians(180)); // Closest (Second Set)
     private final Pose scorePose4 = new Pose(144-88, 19, Math.toRadians(112.5));
 
@@ -134,7 +135,7 @@ public class farBlueAuto extends OpMode {
                     .addPath(new BezierLine(gobble3Pose, scorePose4))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose3.getHeading())
+                    .setLinearHeadingInterpolation(gobble3Pose.getHeading(), scorePose4.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -170,6 +171,7 @@ public class farBlueAuto extends OpMode {
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
+
                     launch=true;
                     launchArtifactsE();
                     if(startNextPose) {
@@ -240,9 +242,14 @@ public class farBlueAuto extends OpMode {
                     launchArtifactsE();
                     stopIntake();
                     follower.followPath(park, false);
-                    setPathState(-1);
+                    setPathState(9);
                 }
                 break;
+            case 9:
+                if(!follower.isBusy()){
+                    IntermediateTeleop.startingPose = follower.getPose();
+                    setPathState(-1);
+                }
         }
     }
 
@@ -316,6 +323,8 @@ public class farBlueAuto extends OpMode {
     /** We do not use this because everything should automatically disable **/
     @Override
     public void stop() {}
+
+
 
 
 
@@ -404,7 +413,7 @@ public class farBlueAuto extends OpMode {
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
+        while((ballKickers.getRightPos()<UpRightPos)||(ballKickers.getLeftPos()>UpLeftPos)){
             follower.update();
             flywheel.update(launchVel);
         }

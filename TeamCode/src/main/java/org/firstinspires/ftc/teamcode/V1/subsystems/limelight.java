@@ -75,7 +75,7 @@ public class limelight {
 
     public Pose relocalize(double heading) {
         result = limelight.getLatestResult();
-        limelight.updateRobotOrientation(heading);
+        limelight.updateRobotOrientation(heading-Math.toRadians(90));
         Pose3D botpose3d = result.getBotpose_MT2();
 
         double x = botpose3d.getPosition().x;

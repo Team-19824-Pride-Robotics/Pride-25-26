@@ -9,6 +9,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.V1.IntermediateTeleop;
 import org.firstinspires.ftc.teamcode.V1.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.V1.subsystems.colorSensors;
 import org.firstinspires.ftc.teamcode.V1.subsystems.distanceSensors;
@@ -246,9 +247,14 @@ public class CloseRedAuto extends OpMode {
                     launchArtifactsI();
                     stopIntake();
                     follower.followPath(park, false);
-                    setPathState(-1);
+                    setPathState(9);
                 }
                 break;
+            case 9:
+                if(!follower.isBusy()){
+                    IntermediateTeleop.startingPose = follower.getPose();
+                    setPathState(-1);
+                }
         }
     }
 
