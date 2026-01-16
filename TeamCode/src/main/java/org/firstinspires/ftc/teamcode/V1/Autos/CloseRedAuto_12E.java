@@ -30,17 +30,17 @@ public class CloseRedAuto_12E extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
     private final Pose startPose = new Pose(88, 135, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(85, 92, Math.toRadians(43)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
-    private final Pose lineup1Pose = new Pose(85, 87, Math.toRadians(0)); // Highest (First Set)
-    private final Pose gobble1Pose = new Pose(125, 87, Math.toRadians(0)); // Highest (First Set)
+    private final Pose scorePose = new Pose(85, 92, Math.toRadians(40.5)); // Scoring Pose of our robot. It is facing the goal at a 136 degree angle.
+    private final Pose lineup1Pose = new Pose(85, 90, Math.toRadians(0)); // Highest (First Set)
+    private final Pose gobble1Pose = new Pose(125, 84, Math.toRadians(0)); // Highest (First Set)
     private final Pose lineup2Pose = new Pose(85, 65, Math.toRadians(0)); // Middle (Second Set)
     private final Pose gobble2Pose = new Pose(130, 65, Math.toRadians(0)); // Middle (Second Set)
     private final Pose gateOpenPose = new Pose(130, 75, Math.toRadians(0));
     private final Pose scorePose2 = new Pose(82, 92, Math.toRadians(40.5));
     private final Pose scorePose3 = new Pose(82, 92, Math.toRadians(40.5));
     private final Pose scorePose4 = new Pose(82, 92, Math.toRadians(40.5));
-    private final Pose lineup3Pose = new Pose(85, 40, Math.toRadians(0)); // Middle (Second Set)
-    private final Pose gobble3Pose = new Pose(130, 40, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose lineup3Pose = new Pose(85, 43, Math.toRadians(0)); // Middle (Second Set)
+    private final Pose gobble3Pose = new Pose(130, 37, Math.toRadians(0)); // Middle (Second Set)
     private PathChain scorePreload, grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3, park;
     private intake intake;
     private flywheel flywheel;
@@ -54,9 +54,8 @@ public class CloseRedAuto_12E extends OpMode {
     private static double UpLeftPos=220;
     private static double DownRightPos=90;
     private static double DownLeftPos=290;
-    private static double intakePower=-0.7;
-    private static double firstKickWait=0.5;
-    private static double thirdKickWait=0.5;
+    private static double intakePower=-0.8;
+    private static double firstKickWait=0;
     private static double indexWait=0.75;
     private static double colorSensorTimeout=2;
     private static int motif=0;
@@ -64,6 +63,7 @@ public class CloseRedAuto_12E extends OpMode {
     private boolean startNextPose=true;
     private static double scoreHeadingTolerance=0.1;
     private static double scoreTranslationalConstraint=0.5;
+    private static double scoreVelocityConstraint=0;
     public void buildPaths() {
 
         scorePreload = follower.pathBuilder()
@@ -71,6 +71,7 @@ public class CloseRedAuto_12E extends OpMode {
                 .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
         /* grabPickup1 PathChain --> lines up for the first set of artifacts, then
@@ -90,6 +91,7 @@ public class CloseRedAuto_12E extends OpMode {
                 .setLinearHeadingInterpolation(gobble1Pose.getHeading(), scorePose2.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
         /* grabPickup2 PathChain --> lines up for the second set of artifacts, then
@@ -120,6 +122,7 @@ public class CloseRedAuto_12E extends OpMode {
                 .setLinearHeadingInterpolation(lineup2Pose.getHeading(), scorePose3.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
 
@@ -138,6 +141,7 @@ public class CloseRedAuto_12E extends OpMode {
                 .setLinearHeadingInterpolation(lineup3Pose.getHeading(), scorePose4.getHeading())
                 .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                 .setTranslationalConstraint(scoreTranslationalConstraint)
+                .setVelocityConstraint(scoreVelocityConstraint)
                 .build();
 
         park = follower.pathBuilder()
@@ -354,7 +358,7 @@ public class CloseRedAuto_12E extends OpMode {
             kickRight();
         }
         actionTimer.resetTimer();
-        while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()>DownLeftPos)){
+        while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -450,7 +454,7 @@ public class CloseRedAuto_12E extends OpMode {
         }
         ballKickers.kickLeft();
         ballKickers.update();
-        while(ballKickers.getLeftPos()<UpLeftPos){
+        while(ballKickers.getLeftPos()>UpLeftPos){
             flywheel.update(launchVel);
         }
         ballKickers.retractLeft();
@@ -480,7 +484,7 @@ public class CloseRedAuto_12E extends OpMode {
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()>UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
+        while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
             flywheel.update(launchVel);
             follower.update();
         }

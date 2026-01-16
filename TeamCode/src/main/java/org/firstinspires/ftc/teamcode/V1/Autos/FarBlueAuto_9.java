@@ -60,6 +60,7 @@ public class FarBlueAuto_9 extends OpMode {
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
     private static double colorSensorTimeout=2;
+    private static double roarWait=3;
 
     private boolean launch=false;
     private boolean startNextPose=true;
@@ -149,6 +150,13 @@ public class FarBlueAuto_9 extends OpMode {
                 intake.update();
                 follower.setMaxPower(1);  //slow down the path following if necessary
                 follower.followPath(scorePreload, true);
+                actionTimer.resetTimer();
+                while(actionTimer.getElapsedTimeSeconds()<roarWait){
+                    flywheel.update(launchVel);
+                    follower.update();
+                    telemetry.addData("launchVel", flywheel.getVelocity());
+                    telemetry.update();
+                }
                 startNextPose=false;
                 setPathState(1);
                 break;
