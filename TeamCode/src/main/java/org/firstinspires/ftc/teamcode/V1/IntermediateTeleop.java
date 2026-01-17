@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.V1.subsystems.intake;
 import org.firstinspires.ftc.teamcode.V1.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp
+@TeleOp(name = "Teleop")
 @Configurable
 
 public class IntermediateTeleop extends LinearOpMode {
@@ -83,9 +83,7 @@ public class IntermediateTeleop extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        follower = Constants.createFollower(hardwareMap);
-        follower.setPose(startingPose);
-        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+
         //Intep table setup
         lut.add(0, 1000);
         lut.add(48, 1080);
@@ -138,9 +136,7 @@ public class IntermediateTeleop extends LinearOpMode {
         ballKickers.retractRight();
         ballKickers.retractLeft();
 
-        if(startingPose == null){
-            startingPose = new Pose(144 - 88, 9, Math.toRadians(90));
-        }
+
         //alliance selection
         while(!allianceSelected){
             telemetry.addData("Select alliance with Dpad","");
@@ -158,7 +154,16 @@ public class IntermediateTeleop extends LinearOpMode {
             telemetry.update();
         }
 
-
+        if(startingPose == null){
+            if(redAlliance){
+                startingPose = new Pose(89, 70, Math.toRadians(0));
+            } else {
+                startingPose = new Pose(144 - 88, 9, Math.toRadians(90));
+            }
+        }
+        follower = Constants.createFollower(hardwareMap);
+        follower.setPose(startingPose);
+        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
         waitForStart();
 
@@ -217,7 +222,7 @@ public class IntermediateTeleop extends LinearOpMode {
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(88, 19, Math.toRadians(79))                                        // end
+                                                    new Pose(88, 19, Math.toRadians(69))                                      // end
                                             ),
                                             pathConstraints
                                     )
@@ -232,7 +237,7 @@ public class IntermediateTeleop extends LinearOpMode {
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(144 - 88, 19, Math.toRadians(111))                                         // end
+                                                    new Pose(144-88, 19, Math.toRadians(111))                                        // end
                                             ),
                                             pathConstraints
                                     )
@@ -319,7 +324,7 @@ public class IntermediateTeleop extends LinearOpMode {
                 if (limelight.getDistance() != -1) {
                     launchVel = lut.get(limelight.getDistance());
                 }
-            } else if (disableFlywheel) {
+            } else if (disableFlywheel||unJam) {
                 launchVel=0;
             }
 
@@ -425,7 +430,7 @@ public class IntermediateTeleop extends LinearOpMode {
             if(!unJam) {
                 flywheel.update(launchVel);
             } else{
-                flywheel.setPower(-1);
+                flywheel.setPower(1);
             }
             ballKickers.update();
             intake.update();
