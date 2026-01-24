@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.omeN_code;
+package org.firstinspires.ftc.teamcode.omeN_code.jacksonTunerz;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.omeN_code.subsystems;
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.ftc.PoseConverter;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -21,6 +22,8 @@ public class limelight {
     private final Limelight3A limelight;
     private LLResult result;
     private static double timeout=0.2;
+    private static double headingMod1=-90;
+    private static double headingMod2=0;
 
     public limelight(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "lL");
@@ -67,7 +70,7 @@ public class limelight {
     public double getAngle(){
         result = limelight.getLatestResult();
         if(result != null){
-            return result.getTxNC();
+            return result.getTyNC();
         } else{
             return -1;
         }
@@ -75,15 +78,32 @@ public class limelight {
 
     public Pose relocalize(double heading) {
         result = limelight.getLatestResult();
-        limelight.updateRobotOrientation(heading-Math.toRadians(90));
         Pose3D botpose3d = result.getBotpose_MT2();
 
-        double x = botpose3d.getPosition().x;
-        double y = botpose3d.getPosition().y;
+        // Limelight pose (meters, center-origin)
+        double llX = botpose3d.getPosition().x;
+        double llY = botpose3d.getPosition().y;
+        // Convert to inches
+        double llX_in = llX * 39.3701;
+        double llY_in = llY * 39.3701;
+        // Axis remap (Limelight → Pedro)
+        double pedroX = llY_in + 72.0;
+        double pedroY = -llX_in + 72.0;
+        Pose2D botpose2d = new Pose2D(
+                DistanceUnit.INCH,
+                pedroX,
+                pedroY,
+                AngleUnit.RADIANS,
+                heading
+        );
+        return PoseConverter.pose2DToPose(botpose2d, PedroCoordinates.INSTANCE);
 
-        Pose2D botpose2d = new Pose2D(DistanceUnit.METER,x , y, AngleUnit.RADIANS, heading);
+//        Pose returnPose = PoseConverter.pose2DToPose(botpose2d, InvertedFTCCoordinates.INSTANCE);
+//        return returnPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+    }
+    public void update(double heading){
+        limelight.updateRobotOrientation(Math.toDegrees(heading)-headingMod1);
 
-        return PoseConverter.pose2DToPose(botpose2d, InvertedFTCCoordinates.INSTANCE);
     }
     public boolean isValid(){
         result=limelight.getLatestResult();

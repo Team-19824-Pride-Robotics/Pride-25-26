@@ -9,7 +9,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.omeN_code.IntermediateTeleop;
+import org.firstinspires.ftc.teamcode.omeN_code.Teleop;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.colorSensors;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.distanceSensors;
@@ -252,7 +252,7 @@ public class CloseRedAuto extends OpMode {
                 break;
             case 9:
                 if(!follower.isBusy()){
-                    IntermediateTeleop.startingPose = follower.getPose();
+                    Teleop.startingPose = follower.getPose();
                     setPathState(-1);
                 }
         }

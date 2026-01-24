@@ -12,6 +12,7 @@ import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -26,43 +27,39 @@ import org.firstinspires.ftc.teamcode.omeN_code.subsystems.intake;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp(name = "Teleop")
+@TeleOp
 @Configurable
+@Disabled
 
-public class IntermediateTeleop extends LinearOpMode {
+public class WeirdTeleop extends LinearOpMode {
 
     //pedro stuff
     private Follower follower;
     public Pose currentPose;
-    public static Pose startingPose = new Pose();
+    public Pose startingPose = new Pose(144-88, 9, Math.toRadians(90));
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
-   private ballKickers ballKickers;
+    private ballKickers ballKickers;
     private limelight limelight;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
     //intake logic
     private static double intakePowerDampening = 0.8;
-    private boolean manualIntaking = false;
-    private int setIntakePow = 0;
-    private boolean intaking;
+
     //launch logic
     private static double UpRightPos=135;
     private static double UpLeftPos=220;
-    private static double DownRightPos=90;
-    private static double DownLeftPos=290;
     private boolean launchLeft=false;
     private boolean launchRight=false;
+    private static double DownRightPos=90;
+    private static double DownLeftPos=280;
     private boolean indexMode=false;
     private boolean launchE=false;
     private int launchQueue=0;
     //flywheel logic\
     private static double defaultLaunchVel=1100;
-    private double distance;
     private double launchVel=defaultLaunchVel;
-    private boolean disableFlywheel=false;
-    private boolean unJam=false;
 
     //Alliance selection
     private boolean allianceSelected=false;
@@ -87,7 +84,9 @@ public class IntermediateTeleop extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-
+        follower = Constants.createFollower(hardwareMap);
+        follower.setPose(startingPose);
+        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
         //Intep table setup
         lut.add(0, 1000);
         lut.add(48, 1080);
@@ -107,7 +106,6 @@ public class IntermediateTeleop extends LinearOpMode {
         lut.add(120, 1400);
         lut.add(125, 1420);
         lut.add(130, 1440);
-        lut.add(999, 1440);
 
         lut.createLUT();
 
@@ -159,20 +157,8 @@ public class IntermediateTeleop extends LinearOpMode {
             telemetry.update();
         }
 
-        if(startingPose == null){
-            if(redAlliance){
-                startingPose = new Pose(89, 70, Math.toRadians(0));
-            } else {
-                startingPose = new Pose(144 - 88, 9, Math.toRadians(90));
-            }
-        }
-        follower = Constants.createFollower(hardwareMap);
-        follower.setPose(startingPose);
-        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
-        if(colorSensors.getColorRight()!=0 && colorSensors.getColorLeft()!=0){
-            intaking=true;
-        }
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -230,12 +216,12 @@ public class IntermediateTeleop extends LinearOpMode {
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(88, 15, Math.toRadians(67))                                      // end
+                                                    new Pose(88, 19, Math.toRadians(79))                                        // end
                                             ),
                                             pathConstraints
                                     )
                             )
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(67))
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(79))
                             .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                             .setTranslationalConstraint(scoreTranslationalConstraint)
                             .build();
@@ -245,7 +231,7 @@ public class IntermediateTeleop extends LinearOpMode {
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(144-88, 15, Math.toRadians(111))                                        // end
+                                                    new Pose(144 - 88, 19, Math.toRadians(111))                                         // end
                                             ),
                                             pathConstraints
                                     )
@@ -282,45 +268,22 @@ public class IntermediateTeleop extends LinearOpMode {
             //////////////
 
             //intake
-            manualIntaking = gamepad1.right_trigger > 0.1 || gamepad1.left_trigger > 0.1;
-            if(manualIntaking) {
-                intake.setPower((gamepad1.right_trigger - gamepad1.left_trigger) * intakePowerDampening);
-            }
-            else{
-                intake.setPower(setIntakePow * intakePowerDampening);
-            }
-            if(launchQueue>0 && launchQueue<3){
-                setIntakePow=-1;
-            } else{
-                setIntakePow=0;
-            }
-            
-            //Emergency flywheel control
-            if(gamepad1.dpad_down){
-                unJam=true;
-                disableFlywheel=false;
-            }
-            if(gamepad1.dpad_left){
-                unJam=false;
-                disableFlywheel=true;
-            }
-            if(gamepad1.dpad_up){
-                unJam=false;
-                disableFlywheel=false;
-            }
+            intake.setPower((gamepad1.right_trigger-gamepad1.left_trigger)*intakePowerDampening);
+
+
 
 
             //Launch type selection
-            if(gamepad1.start){
+            if(gamepad2.start){
                 indexMode=true;
-            } if(gamepad1.share){
+            } if(gamepad2.share){
                 indexMode=false;
             }
             if (indexMode) {
-                if (gamepad1.right_bumper) {
+                if (gamepad2.right_bumper) {
                     launchRight = true;
                 }
-                if (gamepad1.left_bumper) {
+                if (gamepad2.left_bumper) {
                     launchLeft = true;
                 }
                 if (gamepad1.b) {
@@ -329,7 +292,7 @@ public class IntermediateTeleop extends LinearOpMode {
                 }
                 launchE = false;
             } else {
-                if (gamepad1.right_bumper || gamepad1.left_bumper) {
+                if (gamepad2.right_bumper || gamepad2.left_bumper) {
                     launchE = true;
                     launchQueue = 3;
                 }
@@ -340,14 +303,11 @@ public class IntermediateTeleop extends LinearOpMode {
             }
 
             //launch logic
-            if(!unJam&&!disableFlywheel) {
-                distance=limelight.getDistance();
-                if (distance != -1) {
-                    launchVel = lut.get(distance);
-                }
-            } else if (!disableFlywheel||unJam) {
-                launchVel=0;
+
+            if (limelight.getDistance() != -1) {
+                launchVel = lut.get(limelight.getDistance());
             }
+
 
 
             //Kicker logic for non index mode
@@ -361,6 +321,13 @@ public class IntermediateTeleop extends LinearOpMode {
                             } else {
                                 launchLeft = true;
                             }
+                            launchQueue--;
+                        }
+                        else{
+                            launchRight=true;
+                            launchLeft=true;
+                            launchQueue--;
+                            launchE=false;
                         }
                     }
 
@@ -373,7 +340,7 @@ public class IntermediateTeleop extends LinearOpMode {
                     ballKickers.retractLeft();
                     if (Math.abs(flywheel.getVelocity()-launchVel)<20 && rightKickerPos < DownRightPos) {
                         if (launchQueue == 1) {
-                            if((colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) && (rightKickerPos<DownRightPos && leftKickerPos<DownLeftPos)){
+                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0){
                                 ballKickers.kickRight();
                                 ballKickers.kickLeft();
                             }
@@ -386,7 +353,7 @@ public class IntermediateTeleop extends LinearOpMode {
                     ballKickers.retractRight();
                     if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos) {
                         if (launchQueue == 1) {
-                            if((colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) && (rightKickerPos<DownRightPos && leftKickerPos<DownLeftPos)) {
+                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) {
                                 ballKickers.kickRight();
                                 ballKickers.kickLeft();
                             }
@@ -399,30 +366,27 @@ public class IntermediateTeleop extends LinearOpMode {
                 //Retraction logic
                 if (launchLeft && leftKickerPos < UpLeftPos) {
                     ballKickers.retractLeft();
-                    ballKickers.retractRight();
                     launchLeft = false;
                     if (launchQueue > 1) {
                         launchRight = true;
-                    } if(launchQueue>0){
-                        intaking=true;
+                    } if(launchQueue > 0){
                         launchQueue--;
+
                     }
                 }
                 if (launchRight && rightKickerPos > UpRightPos) {
                     ballKickers.retractRight();
-                    ballKickers.retractLeft();
                     launchRight = false;
                     if (launchQueue > 1) {
                         launchLeft = true;
-                    }if(launchQueue>0){
-                        intaking=true;
+                    }if(launchQueue > 0){
                         launchQueue--;
                     }
                 }
             } else {
                 if (launchRight) {
                     ballKickers.retractLeft();
-                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && rightKickerPos < DownRightPos) {
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20   && rightKickerPos < DownRightPos) {
                         ballKickers.kickRight();
                     }
                 }
@@ -445,17 +409,14 @@ public class IntermediateTeleop extends LinearOpMode {
 
 
             //update mechs
-            if(!unJam) {
-                flywheel.update(launchVel);
-            } else{
-                flywheel.setPower(1);
-            }
+
+            flywheel.update(launchVel);
             ballKickers.update();
             intake.update();
 
             telemetry.addData("X", follower.getPose().getX());
             telemetry.addData("Y", follower.getPose().getY());
-            telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+            telemetry.addData("Heading", follower.getPose().getHeading());
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheelVelocity);
             telemetry.addData("Desired wheel speed", launchVel);

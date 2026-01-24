@@ -11,13 +11,9 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.colorSensors;
@@ -27,46 +23,54 @@ import org.firstinspires.ftc.teamcode.omeN_code.subsystems.intake;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@TeleOp
+import java.util.List;
+
+@TeleOp(name = "Teleop")
 @Configurable
-@Disabled
 
 public class Teleop extends LinearOpMode {
 
     //pedro stuff
     private Follower follower;
     public Pose currentPose;
-    public Pose startingPose = new Pose(144-88, 9, Math.toRadians(90));
+    public static Pose startingPose;
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
-    private ballKickers ballKickers;
+   private ballKickers ballKickers;
     private limelight limelight;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
     //intake logic
     private static double intakePowerDampening = 0.8;
-
+    private boolean manualIntaking = false;
+    private int setIntakePow = 0;
+    private boolean intaking;
     //launch logic
     private static double UpRightPos=135;
     private static double UpLeftPos=220;
+    private static double DownRightPos=90;
+    private static double DownLeftPos=290;
     private boolean launchLeft=false;
     private boolean launchRight=false;
-    private static double DownRightPos=90;
-    private static double DownLeftPos=280;
     private boolean indexMode=false;
     private boolean launchE=false;
     private int launchQueue=0;
     //flywheel logic\
     private static double defaultLaunchVel=1100;
+    private double distance;
     private double launchVel=defaultLaunchVel;
+    private boolean disableFlywheel=false;
+    private boolean unJam=false;
 
     //Alliance selection
     private boolean allianceSelected=false;
     private boolean redAlliance=false;
     //Pedro pathing party vars
     boolean headingLock = false;
-    private boolean automatedDrive=false;
+    private boolean farZoneAim=false;
+    private double farAng=109;
+    private boolean wasPressed=false;
     boolean switchDrive=false;
     private static double scoreHeadingTolerance=0.1;
     private static double scoreTranslationalConstraint=0.5;
@@ -80,13 +84,12 @@ public class Teleop extends LinearOpMode {
     //Other stuff
     InterpLUT lut = new InterpLUT();
 
+//Auto aim
 
 
     @Override
     public void runOpMode() throws InterruptedException {
-        follower = Constants.createFollower(hardwareMap);
-        follower.setPose(startingPose);
-        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
+
         //Intep table setup
         lut.add(0, 1000);
         lut.add(48, 1080);
@@ -101,28 +104,20 @@ public class Teleop extends LinearOpMode {
         lut.add(95, 1280);
         lut.add(100, 1300);
         lut.add(105, 1320);
-        lut.add(110, 1360);
-        lut.add(115, 1380);
-        lut.add(120, 1400);
-        lut.add(125, 1420);
+        lut.add(110, 1340);
+        lut.add(115, 1360);
+        lut.add(120, 1360);
+        lut.add(125, 1400);
         lut.add(130, 1440);
+        lut.add(999, 1440);
 
         lut.createLUT();
 
-        // Declare motor ok
-        // Absolutely yes make ID's match configuration
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("fLD");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("bLD");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("fRD");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("bRD");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-        imu.initialize(parameters);
-        //reverse drive motors
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
 
         //Declare mechs
         intake = new intake(hardwareMap);
@@ -157,13 +152,28 @@ public class Teleop extends LinearOpMode {
             telemetry.update();
         }
 
+            if(startingPose==null) {
+                if (redAlliance) {
+                    startingPose = new Pose(89, 70, Math.toRadians(90));
+                } else {
+                    startingPose = new Pose(144 - 88, 9, Math.toRadians(90));
+                }
+            }
+        follower = Constants.createFollower(hardwareMap);
+        follower.setPose(startingPose);
+        PIDFController controller = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
-
+        if(colorSensors.getColorRight()!=0 && colorSensors.getColorLeft()!=0){
+            intaking=true;
+        }
         waitForStart();
 
         if (isStopRequested()) return;
         follower.startTeleopDrive();
         while (opModeIsActive()) {
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
             follower.update();
             //Hardware reads
             leftKickerPos= ballKickers.getLeftPos();
@@ -207,7 +217,7 @@ public class Teleop extends LinearOpMode {
             }
 
             if (gamepad1.a) { //Go to far zone launch
-                automatedDrive = true;
+                farZoneAim=true;
                 PathChain pathChain;// start
 // end
                 if(redAlliance) {
@@ -216,12 +226,12 @@ public class Teleop extends LinearOpMode {
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(88, 19, Math.toRadians(79))                                        // end
+                                                    new Pose(88, 15, Math.toRadians(67))                                      // end
                                             ),
                                             pathConstraints
                                     )
                             )
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(79))
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(67))
                             .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                             .setTranslationalConstraint(scoreTranslationalConstraint)
                             .build();
@@ -231,14 +241,14 @@ public class Teleop extends LinearOpMode {
                                     new Path(
                                             new BezierLine(
                                                     new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(144 - 88, 19, Math.toRadians(111))                                         // end
+                                                    new Pose(144-88, 15, Math.toRadians(farAng))                                        // end
                                             ),
                                             pathConstraints
                                     )
                             )
                             .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                             .setTranslationalConstraint(scoreTranslationalConstraint)
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(111))
+                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(farAng))
                             .build();
                 }
                 follower.followPath(pathChain);
@@ -253,37 +263,64 @@ public class Teleop extends LinearOpMode {
 
             if(gamepad1.b){
                 headingLock=false;
-                automatedDrive=false;
+                farZoneAim=false;
                 follower.startTeleopDrive();
             } if(gamepad1.a){
                 headingLock=true;
             }
-            if(gamepad1.x){
+
                 if(limelight.isValid()){
-                    follower.setPose(limelight.relocalize(follower.getHeading()));
+                    if(gamepad1.right_bumper || gamepad1.left_bumper) {
+                        follower.setPose(limelight.relocalize(follower.getHeading()));
+                    }
+                    limelight.update(follower.getHeading());
                 }
-            }
+
+
             //////////////
             //Mechansims//
             //////////////
 
             //intake
-            intake.setPower((gamepad1.right_trigger-gamepad1.left_trigger)*intakePowerDampening);
-
-
+            manualIntaking = gamepad1.right_trigger > 0.1 || gamepad1.left_trigger > 0.1;
+            if(manualIntaking) {
+                intake.setPower((gamepad1.right_trigger - gamepad1.left_trigger) * intakePowerDampening);
+            }
+            else{
+                intake.setPower(setIntakePow);
+            }
+            if(launchQueue>0 && launchQueue<3){
+                setIntakePow=-1;
+            } else{
+                setIntakePow=0;
+            }
+            
+            //Emergency flywheel control
+            if(gamepad1.dpad_down){
+                unJam=true;
+                disableFlywheel=false;
+            }
+            if(gamepad1.dpad_left){
+                unJam=false;
+                disableFlywheel=true;
+            }
+            if(gamepad1.dpad_up){
+                unJam=false;
+                disableFlywheel=false;
+            }
 
 
             //Launch type selection
-            if(gamepad2.start){
+            if(gamepad1.start){
                 indexMode=true;
-            } if(gamepad2.share){
+            } if(gamepad1.share){
                 indexMode=false;
             }
             if (indexMode) {
-                if (gamepad2.right_bumper) {
+                if (gamepad1.right_bumper) {
                     launchRight = true;
                 }
-                if (gamepad2.left_bumper) {
+                if (gamepad1.left_bumper) {
                     launchLeft = true;
                 }
                 if (gamepad1.b) {
@@ -292,7 +329,7 @@ public class Teleop extends LinearOpMode {
                 }
                 launchE = false;
             } else {
-                if (gamepad2.right_bumper || gamepad2.left_bumper) {
+                if (gamepad1.right_bumper || gamepad1.left_bumper) {
                     launchE = true;
                     launchQueue = 3;
                 }
@@ -303,11 +340,14 @@ public class Teleop extends LinearOpMode {
             }
 
             //launch logic
-
-            if (limelight.getDistance() != -1) {
-                launchVel = lut.get(limelight.getDistance());
+            if(!unJam&&!disableFlywheel) {
+                distance=limelight.getDistance();
+                if (distance != -1) {
+                    launchVel = lut.get(distance);
+                }
+            } else if (!disableFlywheel||unJam) {
+                launchVel=0;
             }
-
 
 
             //Kicker logic for non index mode
@@ -321,13 +361,6 @@ public class Teleop extends LinearOpMode {
                             } else {
                                 launchLeft = true;
                             }
-                            launchQueue--;
-                        }
-                        else{
-                            launchRight=true;
-                            launchLeft=true;
-                            launchQueue--;
-                            launchE=false;
                         }
                     }
 
@@ -340,7 +373,7 @@ public class Teleop extends LinearOpMode {
                     ballKickers.retractLeft();
                     if (Math.abs(flywheel.getVelocity()-launchVel)<20 && rightKickerPos < DownRightPos) {
                         if (launchQueue == 1) {
-                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0){
+                            if((colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) && (rightKickerPos<DownRightPos && leftKickerPos<DownLeftPos)){
                                 ballKickers.kickRight();
                                 ballKickers.kickLeft();
                             }
@@ -353,7 +386,7 @@ public class Teleop extends LinearOpMode {
                     ballKickers.retractRight();
                     if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos) {
                         if (launchQueue == 1) {
-                            if(colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) {
+                            if((colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) && (rightKickerPos<DownRightPos && leftKickerPos<DownLeftPos)) {
                                 ballKickers.kickRight();
                                 ballKickers.kickLeft();
                             }
@@ -366,27 +399,30 @@ public class Teleop extends LinearOpMode {
                 //Retraction logic
                 if (launchLeft && leftKickerPos < UpLeftPos) {
                     ballKickers.retractLeft();
+                    ballKickers.retractRight();
                     launchLeft = false;
                     if (launchQueue > 1) {
                         launchRight = true;
-                    } if(launchQueue > 0){
+                    } if(launchQueue>0){
+                        intaking=true;
                         launchQueue--;
-
                     }
                 }
                 if (launchRight && rightKickerPos > UpRightPos) {
                     ballKickers.retractRight();
+                    ballKickers.retractLeft();
                     launchRight = false;
                     if (launchQueue > 1) {
                         launchLeft = true;
-                    }if(launchQueue > 0){
+                    }if(launchQueue>0){
+                        intaking=true;
                         launchQueue--;
                     }
                 }
             } else {
                 if (launchRight) {
                     ballKickers.retractLeft();
-                    if (Math.abs(flywheel.getVelocity()-launchVel)<20   && rightKickerPos < DownRightPos) {
+                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && rightKickerPos < DownRightPos) {
                         ballKickers.kickRight();
                     }
                 }
@@ -409,14 +445,17 @@ public class Teleop extends LinearOpMode {
 
 
             //update mechs
-
-            flywheel.update(launchVel);
+            if(!unJam) {
+                flywheel.update(launchVel);
+            } else{
+                flywheel.setPower(1);
+            }
             ballKickers.update();
             intake.update();
 
             telemetry.addData("X", follower.getPose().getX());
             telemetry.addData("Y", follower.getPose().getY());
-            telemetry.addData("Heading", follower.getPose().getHeading());
+            telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
             telemetry.addData("Angle From Goal", limelight.getAngle());
             telemetry.addData("Wheel speed ", flywheelVelocity);
             telemetry.addData("Desired wheel speed", launchVel);
