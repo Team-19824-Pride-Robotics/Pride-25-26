@@ -77,16 +77,17 @@ public class limelight {
     }
 
     public Pose relocalize(double heading) {
+        //ai clutched up on this ngl, i was about to punch a hole through my laptop
         result = limelight.getLatestResult();
         Pose3D botpose3d = result.getBotpose_MT2();
 
         // Limelight pose (meters, center-origin)
         double llX = botpose3d.getPosition().x;
         double llY = botpose3d.getPosition().y;
-        // Convert to inches
+        // Convert meters to inches
         double llX_in = llX * 39.3701;
         double llY_in = llY * 39.3701;
-        // Axis remap (Limelight → Pedro)
+        // Axis remap (Limelight -> Pedro)
         double pedroX = llY_in + 72.0;
         double pedroY = -llX_in + 72.0;
         Pose2D botpose2d = new Pose2D(
@@ -98,8 +99,6 @@ public class limelight {
         );
         return PoseConverter.pose2DToPose(botpose2d, PedroCoordinates.INSTANCE);
 
-//        Pose returnPose = PoseConverter.pose2DToPose(botpose2d, InvertedFTCCoordinates.INSTANCE);
-//        return returnPose.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
     }
     public void update(double heading){
         limelight.updateRobotOrientation(Math.toDegrees(heading)-headingMod1);
@@ -108,6 +107,9 @@ public class limelight {
     public boolean isValid(){
         result=limelight.getLatestResult();
         return result != null && result.isValid();
+    }
+    public boolean isActive(){
+        return limelight.isRunning();
     }
 
 }

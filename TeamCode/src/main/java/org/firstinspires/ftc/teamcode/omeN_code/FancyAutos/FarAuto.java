@@ -1,7 +1,16 @@
 package org.firstinspires.ftc.teamcode.omeN_code.FancyAutos;
 
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.farScorePose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.farStartPose;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.AllianceSelection.allianceSelected;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleClosePoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupClosePoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFarPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPose;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.startFarPose;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.startFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleClosePose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPose;
@@ -57,10 +66,10 @@ public class FarAuto extends OpMode {
     private distanceSensors distanceSensors;
 
     private static int launchVel=1340;
-    private static double UpRightPos=135;
-    private static double UpLeftPos=220;
+    private static double UpRightPos=120;
+    private static double UpLeftPos=230;
     private static double DownRightPos=90;
-    private static double DownLeftPos=280;
+    private static double DownLeftPos=290;
     private static double intakePower=-0.6;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
@@ -71,10 +80,10 @@ public class FarAuto extends OpMode {
     public void buildPaths() {
         if(!redAlliance) {
             scorePreload = follower.pathBuilder()
-                    .addPath(new BezierLine(farStartPose, farScorePose))
+                    .addPath(new BezierLine(startFarPose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(farStartPose.getHeading(), farScorePose.getHeading())
+                    .setLinearHeadingInterpolation(startFarPose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -82,8 +91,8 @@ public class FarAuto extends OpMode {
           turns on the intake and gobbles them up in a line  */
 
             grabPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(farScorePose, lineupFarPose))
-                    .setLinearHeadingInterpolation(farScorePose.getHeading(), lineupFarPose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupFarPose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupFarPose.getHeading())
                     //.addTemporalCallback(1, intake_change(1))
                     .addPath(new BezierLine(lineupFarPose, gobbleFarPose))
                     .setConstantHeadingInterpolation(lineupFarPose.getHeading())
@@ -92,10 +101,10 @@ public class FarAuto extends OpMode {
             /* scorePickup1 PathChain --> moves to the scoring position  */
 
             scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarPose, farScorePose))
+                    .addPath(new BezierLine(gobbleFarPose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarPose.getHeading(), farScorePose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarPose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -104,40 +113,110 @@ public class FarAuto extends OpMode {
 
             grabPickup2 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(farScorePose, lineupMidPose))
-                    .setLinearHeadingInterpolation(farScorePose.getHeading(), lineupMidPose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupMidPose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupMidPose.getHeading())
                     .addPath(new BezierLine(lineupMidPose, gobbleMidPose))
                     .setConstantHeadingInterpolation(lineupMidPose.getHeading())
                     .build();
 
             scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleMidPose, farScorePose))
+                    .addPath(new BezierLine(gobbleMidPose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), farScorePose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
 
             grabPickup3 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(farScorePose, lineupClosePose))
-                    .setLinearHeadingInterpolation(farScorePose.getHeading(), lineupClosePose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupClosePose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupClosePose.getHeading())
                     .addPath(new BezierLine(lineupClosePose, gobbleClosePose))
                     .setConstantHeadingInterpolation(lineupClosePose.getHeading())
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleClosePose, farScorePose))
+                    .addPath(new BezierLine(gobbleClosePose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleClosePose.getHeading(), farScorePose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleClosePose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
             park = follower.pathBuilder()
-                    .addPath(new BezierLine(farScorePose, lineupMidPose))
-                    .setLinearHeadingInterpolation(farScorePose.getHeading(), gobbleFarPose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupMidPose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupMidPose.getHeading())
+                    .build();
+        } else{
+            scorePreload = follower.pathBuilder()
+                    .addPath(new BezierLine(startFarPoseR, scoreFarPoseR))
+                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                    .setTranslationalConstraint(scoreTranslationalConstraint)
+                    .setLinearHeadingInterpolation(startFarPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setVelocityConstraint(scoreVelocityConstraint)
+                    .build();
+
+        /* grabPickup1 PathChain --> lines up for the first set of artifacts, then
+          turns on the intake and gobbles them up in a line  */
+
+            grabPickup1 = follower.pathBuilder()
+                    .addPath(new BezierLine(scoreFarPoseR, lineupFarPoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupFarPoseR.getHeading())
+                    //.addTemporalCallback(1, intake_change(1))
+                    .addPath(new BezierLine(lineupFarPoseR, gobbleFarPoseR))
+                    .setConstantHeadingInterpolation(lineupFarPoseR.getHeading())
+                    .build();
+
+            /* scorePickup1 PathChain --> moves to the scoring position  */
+
+            scorePickup1 = follower.pathBuilder()
+                    .addPath(new BezierLine(gobbleFarPoseR, scoreFarPoseR))
+                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                    .setTranslationalConstraint(scoreTranslationalConstraint)
+                    .setLinearHeadingInterpolation(gobbleFarPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setVelocityConstraint(scoreVelocityConstraint)
+                    .build();
+
+        /* grabPickup2 PathChain --> lines up for the second set of artifacts, then
+           turns on the intake and gobbles them up in a line  */
+
+            grabPickup2 = follower.pathBuilder()
+
+                    .addPath(new BezierLine(scoreFarPoseR, lineupMidPoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupMidPoseR.getHeading())
+                    .addPath(new BezierLine(lineupMidPoseR, gobbleMidPoseR))
+                    .setConstantHeadingInterpolation(lineupMidPoseR.getHeading())
+                    .build();
+
+            scorePickup2 = follower.pathBuilder()
+                    .addPath(new BezierLine(gobbleMidPoseR, scoreFarPoseR))
+                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                    .setTranslationalConstraint(scoreTranslationalConstraint)
+                    .setLinearHeadingInterpolation(gobbleMidPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setVelocityConstraint(scoreVelocityConstraint)
+                    .build();
+
+
+            grabPickup3 = follower.pathBuilder()
+
+                    .addPath(new BezierLine(scoreFarPoseR, lineupClosePoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupClosePoseR.getHeading())
+                    .addPath(new BezierLine(lineupClosePoseR, gobbleClosePoseR))
+                    .setConstantHeadingInterpolation(lineupClosePoseR.getHeading())
+                    .build();
+
+            scorePickup3 = follower.pathBuilder()
+                    .addPath(new BezierLine(gobbleClosePoseR, scoreFarPoseR))
+                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                    .setTranslationalConstraint(scoreTranslationalConstraint)
+                    .setLinearHeadingInterpolation(gobbleClosePoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setVelocityConstraint(scoreVelocityConstraint)
+                    .build();
+
+            park = follower.pathBuilder()
+                    .addPath(new BezierLine(scoreFarPoseR, lineupMidPoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupMidPoseR.getHeading())
                     .build();
         }
 
@@ -200,6 +279,7 @@ public class FarAuto extends OpMode {
             case 4:
                 if(!follower.isBusy()) {
                     launchArtifactsE();
+                    relocalize();
                     if(startNextPose) {
                         startIntake();
                         follower.followPath(grabPickup2, true);
@@ -219,6 +299,7 @@ public class FarAuto extends OpMode {
             case 6:
                 if(!follower.isBusy()) {
                     launchArtifactsE();
+                    relocalize();
                     startIntake();
                     follower.followPath(grabPickup3,true);
                     setPathState(7);
@@ -237,6 +318,7 @@ public class FarAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     launchArtifactsE();
+                    relocalize();
                     stopIntake();
                     follower.followPath(park, false);
                     setPathState(9);
@@ -299,14 +381,24 @@ public class FarAuto extends OpMode {
         intake.setPower(0);
 
         follower = Constants.createFollower(hardwareMap);
+        if(redAlliance) {
+            follower.setStartingPose(startFarPoseR);
+        }else{
+            follower.setStartingPose(startFarPose);
+        }
         buildPaths();
-        follower.setStartingPose(farStartPose);
+
 
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
-    public void init_loop() {}
+    public void init_loop() {
+        if(!allianceSelected){
+            telemetry.addData("WARNING: ALLIANCE NOT SELECTED\nDEFAULT ALLIANCE IS BLUE","" );
+            telemetry.update();
+        }
+    }
 
     /** This method is called once at the start of the OpMode.
      * It runs all the setup actions, including building paths and starting the path system **/
@@ -319,7 +411,9 @@ public class FarAuto extends OpMode {
 
     /** We do not use this because everything should automatically disable **/
     @Override
-    public void stop() {}
+    public void stop() {
+        Teleop.startingPose = follower.getPose();
+    }
 
 
 
@@ -418,5 +512,10 @@ public class FarAuto extends OpMode {
         ballKickers.retractRight();
         ballKickers.retractLeft();
         ballKickers.update();
+    }
+    public void relocalize(){
+        if(limelight.isValid()){-
+            follower.setPose(limelight.relocalize(follower.getHeading()));
+        }
     }
 }

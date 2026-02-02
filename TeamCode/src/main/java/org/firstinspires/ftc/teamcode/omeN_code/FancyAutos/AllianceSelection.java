@@ -8,14 +8,8 @@ import org.firstinspires.ftc.teamcode.omeN_code.subsystems.distanceSensors;
 @TeleOp
 @Configurable
 public class AllianceSelection extends LinearOpMode {
-    //mech subsystem declarations
-
     public static boolean redAlliance = false;
-    //fun variables
-
-
-
-
+    public static boolean allianceSelected = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -30,11 +24,13 @@ public class AllianceSelection extends LinearOpMode {
 
             if(gamepad1.b){
                 redAlliance=true;
+                allianceSelected=true;
             } if(gamepad1.x){
                 redAlliance=false;
+                allianceSelected=true;
             }
             telemetry.addData("Press B for red alliance", "");
-            telemetry.addData("Press A for blue alliance", "");
+            telemetry.addData("Press X for blue alliance", "");
             telemetry.addData("red alliance", redAlliance);
             telemetry.addData("blue alliance", !redAlliance);
             telemetry.update();
