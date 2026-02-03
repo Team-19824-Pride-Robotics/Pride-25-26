@@ -7,6 +7,7 @@ import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMi
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupClosePoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreClosePose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.startFarPose;
@@ -46,7 +47,7 @@ public class FarAuto extends OpMode {
 
 
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer;
+    private Timer pathTimer, actionTimer, opmodeTimer, relocTimer;
     private int pathState;
     private static double scoreHeadingTolerance=0.05;
     private static double scoreTranslationalConstraint=0.5;
@@ -70,10 +71,11 @@ public class FarAuto extends OpMode {
     private static double UpLeftPos=230;
     private static double DownRightPos=90;
     private static double DownLeftPos=290;
-    private static double intakePower=-0.6;
+    private static double intakePower=-0.8;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
     private static double colorSensorTimeout=2;
+    private boolean firstLaunch=true;
 
     private boolean launch=false;
     private boolean startNextPose=true;
@@ -120,10 +122,10 @@ public class FarAuto extends OpMode {
                     .build();
 
             scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleMidPose, scoreFarPose))
+                    .addPath(new BezierLine(gobbleMidPose, scoreClosePose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), scoreClosePose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -137,10 +139,10 @@ public class FarAuto extends OpMode {
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleClosePose, scoreFarPose))
+                    .addPath(new BezierLine(gobbleClosePose, scoreClosePose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleClosePose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleClosePose.getHeading(), scoreClosePose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -228,16 +230,9 @@ public class FarAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
 
-            /* You could check for
-            - Follower State: "if(!follower.isBusy()) {}"
-            - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
-            - Robot Position: "if(follower.getPose().getX() > 36) {}"
-            */
-
 //Start flywheel, set speed, go to score pos
             case 0:
-                intake.setPower(intakePower);
-                intake.update();
+
                 follower.setMaxPower(1);  //slow down the path following if necessary
                 follower.followPath(scorePreload, true);
                 startNextPose=false;
@@ -278,8 +273,10 @@ public class FarAuto extends OpMode {
 //launch 2nd set, go to pickup 3rd set
             case 4:
                 if(!follower.isBusy()) {
+                    reverseIntake();
                     launchArtifactsE();
-                    relocalize();
+                    launchVel=1100;
+                    startIntake();
                     if(startNextPose) {
                         startIntake();
                         follower.followPath(grabPickup2, true);
@@ -298,7 +295,9 @@ public class FarAuto extends OpMode {
 //launch 3rd set, go to pickup 4th set
             case 6:
                 if(!follower.isBusy()) {
+                    reverseIntake();
                     launchArtifactsE();
+                    startIntake();
                     relocalize();
                     startIntake();
                     follower.followPath(grabPickup3,true);
@@ -317,7 +316,9 @@ public class FarAuto extends OpMode {
             case 8:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
+                    reverseIntake();
                     launchArtifactsE();
+                    startIntake();
                     relocalize();
                     stopIntake();
                     follower.followPath(park, false);
@@ -349,6 +350,8 @@ public class FarAuto extends OpMode {
         flywheel.update(launchVel);
         autonomousPathUpdate();
 
+        relocalize();
+
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
@@ -363,6 +366,7 @@ public class FarAuto extends OpMode {
         pathTimer = new Timer();
         actionTimer = new Timer();
         opmodeTimer = new Timer();
+        relocTimer = new Timer();
         opmodeTimer.resetTimer();
 
         intake = new intake(hardwareMap );
@@ -405,6 +409,7 @@ public class FarAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
+        relocTimer.resetTimer();
         setPathState(0);
 
     }
@@ -422,8 +427,9 @@ public class FarAuto extends OpMode {
     public void startIntake(){
         intake.setPower(intakePower);
         intake.update();
-//        ballKickers.doubleblock();
-//        ballKickers.update();
+    } public void reverseIntake(){
+        intake.setPower(-intakePower);
+        intake.update();
     }
     public void unBlock(){
         ballKickers.retractLeft();
@@ -442,9 +448,17 @@ public class FarAuto extends OpMode {
         }
         if(distanceSensors.getSide()==1){ //If efficient side is right
             kickRight();
+            if(firstLaunch){
+                startIntake();
+                firstLaunch=false;
+            }
             kickLeft();
         } else{
             kickLeft();
+            if(firstLaunch){
+                startIntake();
+                firstLaunch=false;
+            }
             kickRight();
         }
         actionTimer.resetTimer();
@@ -514,8 +528,12 @@ public class FarAuto extends OpMode {
         ballKickers.update();
     }
     public void relocalize(){
-        if(limelight.isValid()){-
-            follower.setPose(limelight.relocalize(follower.getHeading()));
+        if(limelight.isValid()){
+            limelight.update(follower.getHeading());
+            if (follower.getPose().getY()>72){
+                follower.setPose(limelight.relocalize(follower.getHeading()));
+            }
+
         }
     }
 }

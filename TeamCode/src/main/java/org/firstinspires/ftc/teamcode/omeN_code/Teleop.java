@@ -12,6 +12,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -37,6 +38,7 @@ public class Teleop extends LinearOpMode {
     public static Pose startingPose;
     private double goalAng;
     private boolean lLActive=false;
+    private boolean firstReloc=true;
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -54,6 +56,7 @@ public class Teleop extends LinearOpMode {
     private static double UpLeftPos=230;
     private static double DownRightPos=90;
     private static double DownLeftPos=290;
+    private boolean farSide;
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private boolean indexMode=false;
@@ -73,8 +76,6 @@ public class Teleop extends LinearOpMode {
     private boolean farZoneAim=false;
     private double farAngBlue=110;
     private double farAngRed = 67;
-    private boolean wasPressed=false;
-    boolean switchDrive=false;
     private static double scoreHeadingTolerance=0.1;
     private static double scoreTranslationalConstraint=0.5;
     //Hardware reads
@@ -86,6 +87,7 @@ public class Teleop extends LinearOpMode {
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
+    Timer relocWait;
 
 //Auto aim
 
@@ -167,6 +169,8 @@ public class Teleop extends LinearOpMode {
 
         if (isStopRequested()) return;
         follower.startTeleopDrive();
+        relocWait = new Timer();
+        relocWait.resetTimer();
         while (opModeIsActive()) {
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
@@ -178,7 +182,11 @@ public class Teleop extends LinearOpMode {
             currentPose=follower.getPose();
             flywheelVelocity=flywheel.getVelocity();
 
-
+            if(follower.getPose().getY()>72){
+                farSide=true;
+            }else{
+                farSide=false;
+            }
             //heading lock and drive control
             if(gamepad1.right_bumper || gamepad1.left_bumper){
                 headingLock=true;
@@ -194,8 +202,8 @@ public class Teleop extends LinearOpMode {
                     follower.turnTo(goalAng);
                 }
             }
-            //Relocalize heading in case of error
 
+            //Relocalize heading in case of error
             if (gamepad1.dpad_right) {
                 Pose currentPose = follower.getPose();
                 if(redAlliance) {
@@ -245,6 +253,7 @@ public class Teleop extends LinearOpMode {
                 follower.followPath(pathChain);
 
             }
+            //Enable drive if we're not auto-targeting
             if (!headingLock && !farZoneAim) {
                 if(!follower.getTeleopDrive()) {
                     follower.startTeleopDrive();
@@ -261,15 +270,18 @@ public class Teleop extends LinearOpMode {
             } if(gamepad1.y){
                 headingLock=true;
             }
-
-                if(limelight.isValid()){
-                    limelight.update(follower.getHeading());
+            if(limelight.isValid()){
+                limelight.update(follower.getHeading());
+                if (firstReloc) {
                     if(gamepad1.right_bumper || gamepad1.left_bumper) {
                         follower.setPose(limelight.relocalize(follower.getHeading()));
                     }
+                }else {
+                    if (follower.getPose().getY()>72){
+                        follower.setPose(limelight.relocalize(follower.getHeading()));
+                    }
                 }
-
-
+            }
             //////////////
             //Mechansims//
             //////////////

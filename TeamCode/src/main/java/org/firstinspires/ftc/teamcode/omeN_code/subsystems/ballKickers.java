@@ -41,6 +41,10 @@ public class ballKickers {
         desiredRightPosition=upRightPosition;
 
     }
+    public void kickBoth(){
+        desiredLeftPosition=upLeftPosition;
+        desiredRightPosition=upRightPosition;
+    }
     public void retractLeft(){
         desiredLeftPosition=downLeftPosition;
 
@@ -48,6 +52,10 @@ public class ballKickers {
     public void retractRight(){
         desiredRightPosition=downRightPosition;
 
+    }
+    public void retractBoth(){
+        desiredLeftPosition=downLeftPosition;
+        desiredRightPosition=downRightPosition;
     }
     public void block(){desiredLeftPosition=blockLeftPos;}
     public void doubleblock(){desiredLeftPosition=blockLeftPos; desiredRightPosition=blockRightPos;}
