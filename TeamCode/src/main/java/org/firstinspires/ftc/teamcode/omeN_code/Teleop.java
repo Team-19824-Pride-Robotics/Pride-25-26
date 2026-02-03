@@ -57,6 +57,7 @@ public class Teleop extends LinearOpMode {
     private static double DownRightPos=90;
     private static double DownLeftPos=290;
     private boolean farSide;
+    private boolean secondDoubleLaunch=false;
     private boolean launchLeft=false;
     private boolean launchRight=false;
     private boolean indexMode=false;
@@ -87,6 +88,7 @@ public class Teleop extends LinearOpMode {
 
     //Other stuff
     InterpLUT lut = new InterpLUT();
+    InterpLUT lutC = new InterpLUT();
     Timer relocWait;
 
 //Auto aim
@@ -117,6 +119,30 @@ public class Teleop extends LinearOpMode {
         lut.add(999, 1440);
 
         lut.createLUT();
+
+
+
+        lutC.add(0, 1000);
+        lutC.add(48, 1080);
+        lutC.add(55, 1100);
+        lutC.add(60, 1100);
+        lutC.add(65, 1120);
+        lutC.add(70, 1120);
+        lutC.add(75, 1140);
+        lutC.add(80, 1140);
+        lutC.add(85, 1200);
+        lutC.add(90, 1240);
+        lutC.add(95, 1280);
+        lutC.add(100, 1300);
+        lutC.add(105, 1320);
+        lutC.add(110, 1340);
+        lutC.add(115, 1340);
+        lutC.add(120, 1360);
+        lutC.add(125, 1400);
+        lutC.add(130, 1440);
+        lutC.add(999, 1440);
+
+        lutC.createLUT();
 
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -182,7 +208,7 @@ public class Teleop extends LinearOpMode {
             currentPose=follower.getPose();
             flywheelVelocity=flywheel.getVelocity();
 
-            if(follower.getPose().getY()>72){
+            if(follower.getPose().getY()>144){
                 farSide=true;
             }else{
                 farSide=false;
@@ -299,7 +325,7 @@ public class Teleop extends LinearOpMode {
             } else{
                 setIntakePow=0;
             }
-            
+
             //Emergency flywheel control
             if(gamepad1.dpad_down){
                 unJam=true;
@@ -348,7 +374,7 @@ public class Teleop extends LinearOpMode {
             if(!unJam&&!disableFlywheel) {
                 distance=limelight.getDistance();
                 if (distance != -1) {
-                    launchVel = lut.get(distance);
+                    launchVel = lutC.get(distance);
                 }
             } else if (!disableFlywheel||unJam) {
                 launchVel=0;
@@ -359,73 +385,103 @@ public class Teleop extends LinearOpMode {
             if (!indexMode) {
                 //Kickstart first launch
                 if (launchE) {
-                    if (!launchLeft && !launchRight) {
-                        if(launchQueue>1) {
-                            if (distanceSensors.getSide() == 1) {
-                                launchRight = true;
-                            } else {
-                                launchLeft = true;
+                    if (!farSide) {
+                        if (!launchLeft && !launchRight) {
+                            if (launchQueue > 1) {
+                                if (distanceSensors.getSide() == 1) {
+                                    launchRight = true;
+                                } else {
+                                    launchLeft = true;
+                                }
                             }
                         }
-                    }
-
-                }
-
-
-
-                //Launch logic
-                if (launchRight) {
-                    if (Math.abs(flywheel.getVelocity()-launchVel)<20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<1) {
-                        if (launchQueue == 1) {
-                            if((colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) && (rightKickerPos<DownRightPos && leftKickerPos<DownLeftPos)){
-                                ballKickers.kickRight();
-                                ballKickers.kickLeft();
-                                launchLeft=true;
-                            }
-                        } else {
-                            ballKickers.kickRight();
-                        }
-                    }
-                }
-                if (launchLeft) {
-                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<1) {
-                        if (launchQueue == 1) {
-                            if((colorSensors.getColorLeft()>0||colorSensors.getColorRight()>0) && (rightKickerPos<DownRightPos && leftKickerPos<DownLeftPos)) {
-                                ballKickers.kickRight();
-                                ballKickers.kickLeft();
-                                launchRight=true;
-                            }
-                        } else {
-                            ballKickers.kickLeft();
-                        }
-                    }
-                }
-
-                //Retraction logic
-                if (launchLeft && leftKickerPos < UpLeftPos) {
-                    ballKickers.retractLeft();
-                    launchLeft = false;
-                    if (launchQueue > 1) {
-                        launchRight = true;
-                    } if(launchQueue>0){
-                        intaking=true;
-                        launchQueue--;
-                    }
-                    if(launchQueue==0){
-                        headingLock=false;
-                    }
-                }
-                if (launchRight && rightKickerPos > UpRightPos) {
-                    ballKickers.retractRight();
-                    launchRight = false;
-                    if (launchQueue > 1) {
+                    } else {
                         launchLeft = true;
-                    }if(launchQueue>0){
-                        intaking=true;
-                        launchQueue--;
                     }
-                    if(launchQueue==0){
-                        headingLock=false;
+                }
+
+
+                if (!farSide) {
+                    //Launch left and right don't rly make sense, i just didn't wanna make more vars
+                    //left is just first set and right is second
+                    if(launchLeft){
+                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
+                            ballKickers.kickBoth();
+                        }
+                        if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
+                            ballKickers.retractBoth();
+                            launchRight=true;
+                            launchLeft=false;
+                        }
+                    }
+                    if(launchRight){
+                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
+                            ballKickers.kickBoth();
+                        }
+                        if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
+                            ballKickers.retractBoth();
+                            launchRight=false;
+                        }
+                    }
+
+                } else {
+                    //Launch logic
+                    if (launchRight) {
+                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
+                            if (launchQueue == 1) {
+                                if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+                                    ballKickers.kickRight();
+                                    ballKickers.kickLeft();
+                                    launchLeft = true;
+                                }
+                            } else {
+                                ballKickers.kickRight();
+                            }
+                        }
+                    }
+
+                    if (launchLeft) {
+                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && leftKickerPos < DownLeftPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
+                            if (launchQueue == 1) {
+                                if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+                                    ballKickers.kickRight();
+                                    ballKickers.kickLeft();
+                                    launchRight = true;
+                                }
+                            } else {
+                                ballKickers.kickLeft();
+                            }
+                        }
+                    }
+
+                    //Retraction logic
+                    if (launchLeft && leftKickerPos < UpLeftPos) {
+                        ballKickers.retractLeft();
+                        launchLeft = false;
+                        if (launchQueue > 1) {
+                            launchRight = true;
+                        }
+                        if (launchQueue > 0) {
+                            intaking = true;
+                            launchQueue--;
+                        }
+                        if (launchQueue == 0) {
+                            headingLock = false;
+                        }
+                    }
+                    if (launchRight && rightKickerPos > UpRightPos) {
+                        ballKickers.retractRight();
+                        launchRight = false;
+                        if (launchQueue > 1) {
+                            launchLeft = true;
+                        }
+                        if (launchQueue > 0) {
+                            intaking = true;
+                            launchQueue--;
+                        }
+                        if (launchQueue == 0) {
+                            headingLock = false;
+                        }
                     }
                 }
             } else {
