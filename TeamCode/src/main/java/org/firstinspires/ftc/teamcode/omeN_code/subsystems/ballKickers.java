@@ -13,9 +13,9 @@ public class ballKickers {
     public static double downLeftPosition = 0.8;
     public static double blockLeftPos=0.4; //67 🤣🤣🤣
     public static double upLeftPosition = 0.65;
-    public static double downRightPosition = 0.775;
+    public static double downRightPosition = 0.75;
     public static double blockRightPos=0.375;
-    public static double upRightPosition = 0.65;
+    public static double upRightPosition = 0.61;
 
     private final ServoImplEx leftKicker;
     private final ServoImplEx rightKicker;

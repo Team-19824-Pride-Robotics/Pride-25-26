@@ -51,13 +51,15 @@ public class ballkickerTuner extends LinearOpMode {
         waitForStart();
 
         if (isStopRequested()) return;
-       if(gamepad1.a){
-           ballKickers.kickBoth();
+        while(opModeIsActive()) {
+            if (gamepad1.a) {
+                ballKickers.kickBoth();
+            }
+            if (gamepad1.b) {
+                ballKickers.retractBoth();
+            }
+            ballKickers.update();
         }
-       if(gamepad1.b){
-           ballKickers.retractBoth();
-       }
-       ballKickers.update();
     }
 
 }

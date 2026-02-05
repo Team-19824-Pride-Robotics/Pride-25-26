@@ -63,9 +63,10 @@ public class Teleop extends LinearOpMode {
     private boolean indexMode=false;
     private boolean launchE=false;
     private int launchQueue=0;
+    private double lastLaunchVel=defaultLaunchVel;
     //flywheel logic\
     private static double defaultLaunchVel=1100;
-    private double distance;
+    private double distance=1;
     private double launchVel=defaultLaunchVel;
     private boolean disableFlywheel=false;
     private boolean unJam=false;
@@ -118,21 +119,21 @@ public class Teleop extends LinearOpMode {
         lut.add(130, 1440);
         lut.add(999, 1440);
 
+
         lut.createLUT();
 
 
 
-        lutC.add(0, 1000);
-        lutC.add(48, 1080);
-        lutC.add(55, 1100);
-        lutC.add(60, 1100);
-        lutC.add(65, 1120);
-        lutC.add(70, 1120);
-        lutC.add(75, 1140);
-        lutC.add(80, 1140);
-        lutC.add(85, 1200);
-        lutC.add(90, 1240);
-        lutC.add(95, 1280);
+        lutC.add(0, 1300);
+        lutC.add(55, 1300);
+        lutC.add(60, 1300);
+        lutC.add(65, 1320);
+        lutC.add(70, 1340);
+        lutC.add(75, 1360);
+        lutC.add(80, 1380);
+        lutC.add(85, 1400);
+        lutC.add(90, 1420);
+        lutC.add(95, 1430);
         lutC.add(100, 1300);
         lutC.add(105, 1320);
         lutC.add(110, 1340);
@@ -208,11 +209,7 @@ public class Teleop extends LinearOpMode {
             currentPose=follower.getPose();
             flywheelVelocity=flywheel.getVelocity();
 
-            if(follower.getPose().getY()>144){
-                farSide=true;
-            }else{
-                farSide=false;
-            }
+            farSide= follower.getPose().getY() < 70;
             //heading lock and drive control
             if(gamepad1.right_bumper || gamepad1.left_bumper){
                 headingLock=true;
@@ -221,9 +218,9 @@ public class Teleop extends LinearOpMode {
                 PathChain pathChain;
                 if(lLActive) {
                     if (redAlliance) {
-                        goalAng = Math.atan2(144 - follower.getPose().getY(), 144 - follower.getPose().getX());
+                        goalAng = Math.atan2(134 - follower.getPose().getY(), 134 - follower.getPose().getX());
                     } else {
-                        goalAng = Math.atan2(144 - follower.getPose().getY(), -follower.getPose().getX());
+                        goalAng = Math.atan2(134 - follower.getPose().getY(), 10-follower.getPose().getX());
                     }
                     follower.turnTo(goalAng);
                 }
@@ -366,16 +363,22 @@ public class Teleop extends LinearOpMode {
                 }
                 if (gamepad1.b) {
                     launchE = false;
+                    secondDoubleLaunch = false;
                     launchQueue = 0;
                 }
             }
 
             //launch logic
             if(!unJam&&!disableFlywheel) {
-                distance=limelight.getDistance();
-                if (distance != -1) {
-                    launchVel = lutC.get(distance);
+                if (limelight.isValid()) {
+                    distance = limelight.getDistance();
                 }
+                if(!secondDoubleLaunch && !farSide) {
+                    launchVel = lutC.get(distance);
+                }else{
+                    launchVel = lut.get(distance);
+                }
+
             } else if (!disableFlywheel||unJam) {
                 launchVel=0;
             }
@@ -384,17 +387,16 @@ public class Teleop extends LinearOpMode {
             //Kicker logic for non index mode
             if (!indexMode) {
                 //Kickstart first launch
-                if (launchE) {
+                if (launchE && !launchLeft && !launchRight) {
                     if (!farSide) {
-                        if (!launchLeft && !launchRight) {
-                            if (launchQueue > 1) {
-                                if (distanceSensors.getSide() == 1) {
-                                    launchRight = true;
-                                } else {
-                                    launchLeft = true;
-                                }
+                        if (launchQueue > 1) {
+                            if (distanceSensors.getSide() == 1) {
+                                launchRight = true;
+                            } else {
+                                launchLeft = true;
                             }
                         }
+
                     } else {
                         launchLeft = true;
                     }
@@ -407,9 +409,11 @@ public class Teleop extends LinearOpMode {
                     if(launchLeft){
                         if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
                             ballKickers.kickBoth();
+                            intaking=true;
                         }
                         if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
                             ballKickers.retractBoth();
+                            secondDoubleLaunch=true;
                             launchRight=true;
                             launchLeft=false;
                         }
@@ -417,9 +421,12 @@ public class Teleop extends LinearOpMode {
                     if(launchRight){
                         if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
                             ballKickers.kickBoth();
+                            secondDoubleLaunch=false;
+                            intaking=false;
                         }
-                        if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
+                        if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos && !secondDoubleLaunch){
                             ballKickers.retractBoth();
+                            launchE=false;
                             launchRight=false;
                         }
                     }
