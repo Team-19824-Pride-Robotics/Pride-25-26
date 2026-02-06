@@ -40,7 +40,7 @@ import org.firstinspires.ftc.teamcode.omeN_code.subsystems.intake;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Far Auto")
+@Autonomous(name = "Mixed Auto")
 @Configurable
 
 public class FarAuto extends OpMode {
@@ -70,7 +70,7 @@ public class FarAuto extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private int launchVel=1380;
+    private int launchVel=1400;
     private static double UpRightPos=120;
     private static double UpLeftPos=230;
     private static double DownRightPos=90;
@@ -258,7 +258,7 @@ public class FarAuto extends OpMode {
 
                     launch=true;
                     launchArtifactsE();
-                    launchVel=1120;
+                    launchVel=1140;
                     if(startNextPose) {
                         follower.followPath(grabPickup1, true);
                         startIntake();
@@ -314,7 +314,7 @@ public class FarAuto extends OpMode {
                 if(!follower.isBusy()) {
                     reverseIntake();
                     launchArtifactsE();
-                    launchVel=1380;
+                    launchVel=1400;
                     startIntake();
                     relocalize();
                     startIntake();
