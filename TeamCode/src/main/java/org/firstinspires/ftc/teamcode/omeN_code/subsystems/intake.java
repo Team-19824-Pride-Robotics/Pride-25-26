@@ -14,6 +14,7 @@ public class intake {
     private final DcMotor intake;
 
     public double intakingPower = 0;
+    public double lastPower=0;
 
 
 
@@ -29,6 +30,9 @@ public class intake {
 
 
     public void update() {
-        intake.setPower(intakingPower);
+        if(Math.abs(intakingPower-lastPower)>0.2) {
+            lastPower=intakingPower;
+            intake.setPower(intakingPower);
+        }
     }
 }

@@ -19,6 +19,7 @@ public class flywheel {
     private static double kD=0.00001;
     private static double kF=0.00068;
     PIDFController pidf = new PIDFController(kP, kI, kD, kF);
+    double lastPower=0;
 
     public flywheel(HardwareMap hardwareMap) {
         flywheel = hardwareMap.get(DcMotorEx.class, "fW");
@@ -31,9 +32,6 @@ public class flywheel {
         flywheel.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         flywheelB.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         flywheelB.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-
-//        flywheel.setDirection(DcMotorEx.Direction.REVERSE);
-//        flywheelB.setDirection(DcMotorEx.Direction.REVERSE);
     }
 
 
@@ -45,17 +43,27 @@ public class flywheel {
     }
 
     public void update(double launchPower) {
-        if (launchPower != 0 && launchPower>getVelocity()) {
-            flywheel.setPower(pidf.calculate(getVelocity(), launchPower));
-            flywheelB.setPower(pidf.calculate(getVelocity(), launchPower));
+        if (launchPower != 0 && launchPower>getVelocity()-60) {
+            double pidfPower = pidf.calculate(getVelocity(), launchPower);
+            if(Math.abs(pidfPower-lastPower)>0.02) {
+                flywheel.setPower(pidfPower);
+                flywheelB.setPower(pidfPower);
+                lastPower=pidfPower;
+            }
         } else {
-            flywheel.setPower(0);
-            flywheelB.setPower(0);
+            if(lastPower!=0) {
+                flywheel.setPower(0);
+                flywheelB.setPower(0);
+                lastPower=0;
+            }
         }
     }
     public void setPower(double power){
-        flywheel.setPower(-power);
-        flywheelB.setPower(-power);
+        if(Math.abs(lastPower-power)>0.02) {
+            flywheel.setPower(-power);
+            flywheelB.setPower(-power);
+            lastPower=power;
+        }
     }
 
 

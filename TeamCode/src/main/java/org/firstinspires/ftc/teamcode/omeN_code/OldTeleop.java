@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.omeN_code;
 import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +17,7 @@ import org.firstinspires.ftc.teamcode.omeN_code.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.colorSensors;
 @TeleOp
 @Configurable
+@Disabled
 public class OldTeleop extends LinearOpMode {
 //mech subsystem declarations
     private intake intake;

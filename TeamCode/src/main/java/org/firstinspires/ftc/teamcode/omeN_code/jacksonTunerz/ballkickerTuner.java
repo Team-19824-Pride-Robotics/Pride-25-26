@@ -59,6 +59,9 @@ public class ballkickerTuner extends LinearOpMode {
                 ballKickers.retractBoth();
             }
             ballKickers.update();
+            telemetry.addData("Left pos: ", ballKickers.getLeftPos());
+            telemetry.addData("Right pos: ", ballKickers.getRightPos());
+            telemetry.update();
         }
     }
 

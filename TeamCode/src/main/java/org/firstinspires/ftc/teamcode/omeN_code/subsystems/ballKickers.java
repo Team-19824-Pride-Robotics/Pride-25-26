@@ -16,6 +16,8 @@ public class ballKickers {
     public static double downRightPosition = 0.75;
     public static double blockRightPos=0.375;
     public static double upRightPosition = 0.61;
+    public static double currentLeftPos;
+    public static double currentRightPos;
 
     private final ServoImplEx leftKicker;
     private final ServoImplEx rightKicker;
@@ -72,8 +74,12 @@ public class ballKickers {
         return leftKicker.getPosition();
     }
     public void update(){
-        leftKicker.setPosition(desiredLeftPosition);
-        rightKicker.setPosition(desiredRightPosition);
+        if(Math.abs(desiredLeftPosition-currentLeftPos)>0) {
+            leftKicker.setPosition(desiredLeftPosition);
+        }
+        if(Math.abs(desiredRightPosition-currentRightPos)>0) {
+            rightKicker.setPosition(desiredRightPosition);
+        }
     }
 }
 

@@ -74,7 +74,7 @@ public class RoarAuto extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private int launchVel=1400;
+    private int launchVel=1420;
     private static double UpRightPos=120;
     private static double UpLeftPos=230;
     private static double DownRightPos=90;

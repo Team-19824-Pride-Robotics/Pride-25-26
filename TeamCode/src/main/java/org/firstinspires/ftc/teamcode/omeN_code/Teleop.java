@@ -50,12 +50,11 @@ public class Teleop extends LinearOpMode {
     private static double intakePowerDampening = 0.8;
     private boolean manualIntaking = false;
     private int setIntakePow = 0;
-    private boolean intaking;
     //launch logic
-    private static double UpRightPos=120;
-    private static double UpLeftPos=230;
-    private static double DownRightPos=90;
-    private static double DownLeftPos=290;
+    private static double UpRightPos=130;
+    private static double UpLeftPos=236;
+    private static double DownRightPos=92;
+    private static double DownLeftPos=285;
     private boolean farSide;
     private boolean secondDoubleLaunch=false;
     private boolean launchLeft=false;
@@ -91,6 +90,7 @@ public class Teleop extends LinearOpMode {
     InterpLUT lut = new InterpLUT();
     InterpLUT lutC = new InterpLUT();
     Timer relocWait;
+    Timer loopTime;
 
 //Auto aim
 
@@ -100,24 +100,24 @@ public class Teleop extends LinearOpMode {
 
         //Intep table setup
         lut.add(0, 1000);
-        lut.add(48, 1080);
-        lut.add(55, 1100);
-        lut.add(60, 1100);
-        lut.add(65, 1120);
-        lut.add(70, 1120);
-        lut.add(75, 1140);
-        lut.add(80, 1140);
-        lut.add(85, 1200);
-        lut.add(90, 1240);
+        lut.add(48, 1140);
+        lut.add(55, 1180);
+        lut.add(60, 1200);
+        lut.add(65, 1220);
+        lut.add(70, 1220);
+        lut.add(75, 1240);
+        lut.add(80, 1260);
+        lut.add(85, 1280);
+        lut.add(90, 1300);
         lut.add(95, 1280);
         lut.add(100, 1300);
         lut.add(105, 1320);
-        lut.add(110, 1340);
-        lut.add(115, 1340);
-        lut.add(120, 1360);
-        lut.add(125, 1400);
-        lut.add(130, 1440);
-        lut.add(999, 1440);
+        lut.add(110, 1360);
+        lut.add(115, 1440);
+        lut.add(120, 1440);
+        lut.add(125, 1460);
+        lut.add(130, 1480);
+        lut.add(999, 1500);
 
 
         lut.createLUT();
@@ -184,9 +184,6 @@ public class Teleop extends LinearOpMode {
         follower.setPose(startingPose);
         PIDFController controller = new PIDFController(follower.constants.coefficientsSecondaryHeadingPIDF);
 
-        if(colorSensors.getColorRight()!=0 && colorSensors.getColorLeft()!=0){
-            intaking=true;
-        }
         if(!allianceSelected){
             telemetry.addData("WARNING: ALLIANCE NOT SELECTED\nDEFAULT ALLIANCE IS BLUE","" );
             telemetry.update();
@@ -197,8 +194,10 @@ public class Teleop extends LinearOpMode {
         if (isStopRequested()) return;
         follower.startTeleopDrive();
         relocWait = new Timer();
+        loopTime = new Timer();
         relocWait.resetTimer();
         while (opModeIsActive()) {
+            loopTime.resetTimer();
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
@@ -209,7 +208,7 @@ public class Teleop extends LinearOpMode {
             currentPose=follower.getPose();
             flywheelVelocity=flywheel.getVelocity();
 
-            farSide= follower.getPose().getY() < 70;
+            farSide= follower.getPose().getY() < 144;
             //heading lock and drive control
             if(gamepad1.right_bumper || gamepad1.left_bumper){
                 headingLock=true;
@@ -364,6 +363,8 @@ public class Teleop extends LinearOpMode {
                 if (gamepad1.b) {
                     launchE = false;
                     secondDoubleLaunch = false;
+                    launchLeft=false;
+                    launchRight=false;
                     launchQueue = 0;
                 }
             }
@@ -373,7 +374,7 @@ public class Teleop extends LinearOpMode {
                 if (limelight.isValid()) {
                     distance = limelight.getDistance();
                 }
-                if(!secondDoubleLaunch && !farSide) {
+                if(!secondDoubleLaunch && !farSide && !indexMode) {
                     launchVel = lutC.get(distance);
                 }else{
                     launchVel = lut.get(distance);
@@ -388,7 +389,7 @@ public class Teleop extends LinearOpMode {
             if (!indexMode) {
                 //Kickstart first launch
                 if (launchE && !launchLeft && !launchRight) {
-                    if (!farSide) {
+                    if (farSide) {
                         if (launchQueue > 1) {
                             if (distanceSensors.getSide() == 1) {
                                 launchRight = true;
@@ -399,6 +400,7 @@ public class Teleop extends LinearOpMode {
 
                     } else {
                         launchLeft = true;
+                        
                     }
                 }
 
@@ -409,7 +411,6 @@ public class Teleop extends LinearOpMode {
                     if(launchLeft){
                         if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
                             ballKickers.kickBoth();
-                            intaking=true;
                         }
                         if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
                             ballKickers.retractBoth();
@@ -422,7 +423,6 @@ public class Teleop extends LinearOpMode {
                         if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
                             ballKickers.kickBoth();
                             secondDoubleLaunch=false;
-                            intaking=false;
                         }
                         if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos && !secondDoubleLaunch){
                             ballKickers.retractBoth();
@@ -469,7 +469,6 @@ public class Teleop extends LinearOpMode {
                             launchRight = true;
                         }
                         if (launchQueue > 0) {
-                            intaking = true;
                             launchQueue--;
                         }
                         if (launchQueue == 0) {
@@ -483,7 +482,6 @@ public class Teleop extends LinearOpMode {
                             launchLeft = true;
                         }
                         if (launchQueue > 0) {
-                            intaking = true;
                             launchQueue--;
                         }
                         if (launchQueue == 0) {
@@ -524,7 +522,7 @@ public class Teleop extends LinearOpMode {
             }
             ballKickers.update();
             intake.update();
-
+            telemetry.addData("Loop Time:", loopTime.getElapsedTime());
             telemetry.addData("X", follower.getPose().getX());
             telemetry.addData("Y", follower.getPose().getY());
             telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));

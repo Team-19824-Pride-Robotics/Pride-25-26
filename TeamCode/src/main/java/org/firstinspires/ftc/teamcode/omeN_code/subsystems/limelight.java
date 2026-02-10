@@ -23,7 +23,6 @@ public class limelight {
     private LLResult result;
     private static double timeout=0.2;
     private static double headingMod1=-90;
-    private static double headingMod2=0;
 
     public limelight(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "lL");
