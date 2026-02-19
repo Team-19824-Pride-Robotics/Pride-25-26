@@ -14,9 +14,10 @@ public class colorSensors {
     private NormalizedColorSensor rRS;
     private NormalizedColorSensor lRS;
 
-    public static double redThresh=0.01;
+    public static double redThresh=0.02;
     public static double blueThresh=0;
     public static double greenThresh=0.045;
+    public static double mixedThresh=0.4;
     public static double objectThresh=0.005;
 
 
@@ -35,28 +36,19 @@ public class colorSensors {
         NormalizedRGBA colorsR = rLS.getNormalizedColors();
         int green = 0;
         int purple = 0;
-        if ((colorsL.red > objectThresh || colorsR.red > objectThresh) && (colorsL.blue > objectThresh || colorsR.blue > objectThresh) && (colorsL.green > objectThresh || colorsR.green > objectThresh)) {
-//            if (colorsL.red > redThresh || colorsR.red > redThresh) {
-//                purple++;
-//            } else {
-//                green++;
-//            }
-//            if (colorsL.blue > blueThresh || colorsR.blue > blueThresh) {
-//                purple++;
-//            } else {
-//                green++;
-//            }
-            if (colorsL.red > redThresh || colorsR.red > redThresh) {
-                purple++;
-            } else {
-                green++;
-            }
-            if (purple > green) {
+        if(colorsL.red > objectThresh && colorsL.blue > objectThresh && colorsL.green > objectThresh){
+            if((colorsL.blue+colorsL.red/colorsL.green>mixedThresh)){
                 return 1;
-            } else {
+            }else{
                 return 2;
             }
-        } else {
+        }else if(colorsR.red > objectThresh && colorsR.blue > objectThresh && colorsR.green > objectThresh) {
+            if((colorsR.blue+colorsR.red/colorsR.green>mixedThresh)){
+                return 1;
+            }else{
+                return 2;
+            }
+        }else{
             return 0;
         }
     }
@@ -65,25 +57,16 @@ public class colorSensors {
             NormalizedRGBA colorsR = rRS.getNormalizedColors();
             int green=0;
             int purple=0;
-            if((colorsL.red > objectThresh || colorsR.red > objectThresh) && (colorsL.blue > objectThresh || colorsR.blue > objectThresh) && (colorsL.green > objectThresh || colorsR.green > objectThresh)){
-//                if(colorsL.red>redThresh||colorsR.red>redThresh){
-//                    purple++;
-//                } else{
-//                    green++;
-//                }
-//                if(colorsL.blue>blueThresh||colorsR.blue>blueThresh){
-//                    purple++;
-//                } else{
-//                    green++;
-//                }
-                if(colorsL.red>redThresh&&colorsR.red>redThresh){
-                    purple++;
-                } else{
-                    green++;
-                }
-                if(purple>green){
+            if(colorsL.red > objectThresh && colorsL.blue > objectThresh && colorsL.green > objectThresh){
+                if((colorsL.blue+colorsL.red/colorsL.green>mixedThresh)){
                     return 1;
-                } else{
+                }else{
+                    return 2;
+                }
+            }else if(colorsR.red > objectThresh && colorsR.blue > objectThresh && colorsR.green > objectThresh) {
+                if((colorsR.blue+colorsR.red/colorsR.green>mixedThresh)){
+                    return 1;
+                }else{
                     return 2;
                 }
             }else{

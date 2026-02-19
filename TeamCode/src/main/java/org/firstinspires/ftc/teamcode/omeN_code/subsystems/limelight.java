@@ -21,7 +21,7 @@ public class limelight {
 
     private final Limelight3A limelight;
     private LLResult result;
-    private static double timeout=0.2;
+    private static double timeout=1;
     private static double headingMod1=-90;
 
     public limelight(HardwareMap hardwareMap) {
@@ -45,9 +45,6 @@ public class limelight {
             limelight.pipelineSwitch(i);
             timeoutTimer.resetTimer();
             while (result.getPipelineIndex() != i && timeoutTimer.getElapsedTimeSeconds()<timeout) {
-                if(timeoutTimer.getElapsedTimeSeconds()>0.2){
-                    return 0;
-                }
                 result = limelight.getLatestResult();
             }
             result = limelight.getLatestResult();

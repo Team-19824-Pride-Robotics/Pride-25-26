@@ -208,7 +208,7 @@ public class Teleop extends LinearOpMode {
             currentPose=follower.getPose();
             flywheelVelocity=flywheel.getVelocity();
 
-            farSide= follower.getPose().getY() < 144;
+            farSide= follower.getPose().getY() < 0;
             //heading lock and drive control
             if(gamepad1.right_bumper || gamepad1.left_bumper){
                 headingLock=true;

@@ -47,6 +47,7 @@ public class colorSensorTuner extends LinearOpMode {
             telemetry.addData("rRBlue", colors[3].blue);
             telemetry.addLine();
 
+
             telemetry.addData("color left ", colorSensors.getColorLeft());
             telemetry.addData("color right ", colorSensors.getColorRight());
             telemetry.update();

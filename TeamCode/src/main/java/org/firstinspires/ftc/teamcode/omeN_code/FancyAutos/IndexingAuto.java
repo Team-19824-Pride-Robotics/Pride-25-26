@@ -1,28 +1,28 @@
 package org.firstinspires.ftc.teamcode.omeN_code.FancyAutos;
 
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.AllianceSelection.allianceSelected;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.AllianceSelection.redAlliance;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gateOpenPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gateOpenPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleClosePose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleClosePoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupClosePose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupClosePoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFarPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPoseR;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreClosePose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreMidPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreMidPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.startFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.startFarPoseR;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleClosePose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupClosePose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFarPose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPose;
-import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.AllianceSelection.redAlliance;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -40,10 +40,10 @@ import org.firstinspires.ftc.teamcode.omeN_code.subsystems.intake;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.limelight;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Mixed Auto")
+@Autonomous(name = "I Auto")
 @Configurable
 
-public class FarAuto extends OpMode {
+public class IndexingAuto extends OpMode {
 
 //Scores preload, close preset, middle preset and far preset
     //No indexing or gate opening yet
@@ -70,11 +70,12 @@ public class FarAuto extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private static int closeVel=1080;
-    private static int farVel=1300;
+    private static int closeVel=1140;
+    private static int farVel=1400;
     private static int ejectVel=600;
     private static int farTol=0;
     private static int closeTol=20;
+    private static int motif=-1;
     private int launchVel=farVel;
     private int launchTol;
     private static double UpRightPos=130;
@@ -84,6 +85,8 @@ public class FarAuto extends OpMode {
     private static double intakePower=-1;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
+    private static double indexWait=1;
+    private static double rollWait=3;
     private static double colorSensorTimeout=2;
     private static double gateOpenWait=0.5;
     private boolean firstLaunch=true;
@@ -154,16 +157,16 @@ public class FarAuto extends OpMode {
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarPose, scoreFarPose))
+                    .addPath(new BezierLine(gobbleFarPose, scoreMidPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarPose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarPose.getHeading(), scoreMidPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
             park = follower.pathBuilder()
-                    .addPath(new BezierLine(scoreFarPose, lineupMidPose))
-                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupMidPose.getHeading())
+                    .addPath(new BezierLine(scoreMidPose, lineupMidPose))
+                    .setLinearHeadingInterpolation(scoreMidPose.getHeading(), lineupMidPose.getHeading())
                     .build();
         } else{
             scorePreload = follower.pathBuilder()
@@ -251,7 +254,8 @@ public class FarAuto extends OpMode {
 
 //Start flywheel, set speed, go to score pos
             case 0:
-
+                motif = limelight.scanAuto();
+                follower.setMaxPower(1);
                 switchToFar();
                 follower.followPath(scorePreload, true);
                 startNextPose=false;
@@ -261,7 +265,7 @@ public class FarAuto extends OpMode {
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-                    launchArtifactsE();
+                    launchArtifactsI();
                     launchVel=ejectVel;
                     if(startNextPose) {
                         follower.followPath(grabPickup1, true);
@@ -296,7 +300,7 @@ public class FarAuto extends OpMode {
             case 4:
                 if(!follower.isBusy()) {
                     reverseIntake();
-                    launchArtifactsE();
+                    launchArtifactsI();
                     launchVel=ejectVel;
                     startIntake();
                     if(startNextPose) {
@@ -320,7 +324,7 @@ public class FarAuto extends OpMode {
             case 6:
                 if(!follower.isBusy()) {
                     reverseIntake();
-                    launchArtifactsE();
+                    launchArtifactsI();
                     launchVel=ejectVel;
                     startIntake();
                     follower.followPath(grabPickup3,true);
@@ -332,7 +336,7 @@ public class FarAuto extends OpMode {
             case 7:
                 if(!follower.isBusy()) {
                     checkOverflow();
-                    switchToFar();
+                    switchToClose();
                     follower.followPath(scorePickup3,true);
                     setPathState(8);
                 }
@@ -342,7 +346,7 @@ public class FarAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
                     reverseIntake();
-                    launchArtifactsE();
+                    launchArtifactsI();
                     startIntake();
                     stopIntake();
                     follower.followPath(park, false);
@@ -377,6 +381,7 @@ loopTimer.resetTimer();
 
         // Feedback to Driver Hub for debugging
         telemetry.addData("loop time: ", loopTimer.getElapsedTime());
+        telemetry.addData("Motif ", motif);
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
@@ -467,16 +472,16 @@ loopTimer.resetTimer();
         intake.setPower(0);
     }
     public void checkOverflow(){
-//        if(distanceSensors.getCount()>1){
-//            ballKickers.kickRight();
-//            ballKickers.update();
-//            while(ballKickers.getRightPos()<UpRightPos){
-//                follower.update();
-//                flywheel.update(launchVel);
-//            }
-//            ballKickers.retractRight();
-//            ballKickers.update();
-//        }
+        if(distanceSensors.getCount()>1){
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(ballKickers.getRightPos()<UpRightPos){
+                follower.update();
+                flywheel.update(launchVel);
+            }
+            ballKickers.retractRight();
+            ballKickers.update();
+        }
     }
     public void eject(){
         if(eject){
@@ -537,6 +542,91 @@ loopTimer.resetTimer();
             follower.update();
         }
         startNextPose=true;
+    }
+    public void launchArtifactsI(){
+        if(motif==-1){
+            launchArtifactsE();
+        } else{
+            actionTimer.resetTimer();
+            while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
+                flywheel.update(launchVel);
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+                follower.update();
+            }
+            int leftColor=colorSensors.getColorLeft();
+            int rightColor=colorSensors.getColorRight();
+            if(motif==0){
+                rollWait();
+                chooseI(2, leftColor, rightColor);
+            }else{
+                rollWait();
+                chooseI(1, leftColor, rightColor);
+            }
+            startIntake();
+            actionTimer.resetTimer();
+            while(actionTimer.getElapsedTimeSeconds()<indexWait){
+                flywheel.update(launchVel);
+                follower.update();
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+            }
+            leftColor=colorSensors.getColorLeft();
+            rightColor=colorSensors.getColorRight();
+            if(motif==1){
+                rollWait();
+                chooseI(2, leftColor, rightColor);
+            }else{
+                rollWait();
+                chooseI(1, leftColor, rightColor);
+            }
+            actionTimer.resetTimer();
+            while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
+                flywheel.update(launchVel);
+                follower.update();
+            }
+            while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+                flywheel.update(launchVel);
+                follower.update();
+            }
+            while(actionTimer.getElapsedTimeSeconds()<indexWait){
+                flywheel.update(launchVel);
+                follower.update();
+                telemetry.addData("launchVel", flywheel.getVelocity());
+                telemetry.update();
+            }
+            kickBoth();
+        }
+        startNextPose=true;
+    }
+    public void rollWait(){
+        actionTimer.resetTimer();
+        while(actionTimer.getElapsedTimeSeconds()<rollWait&&(colorSensors.getColorLeft()==0||colorSensors.getColorLeft()==0)){
+            flywheel.update(launchVel);
+            telemetry.addData("launchVel", flywheel.getVelocity());
+            telemetry.update();
+            follower.update();
+        }
+    }
+    public void chooseI(int targetColor, int leftColor, int rightColor){
+        if(leftColor==targetColor&&rightColor==targetColor){
+            if(distanceSensors.getSide()==1){
+                kickRight();
+            }else {
+                kickLeft();
+            }
+        } else if (leftColor==targetColor) {
+            kickLeft();
+        } else if (rightColor==targetColor) {
+            kickRight();
+        } else{
+            if(distanceSensors.getSide()==1){
+                kickRight();
+            }
+            else {
+                kickLeft();
+            }
+        }
     }
     public void kickLeft(){
         while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){

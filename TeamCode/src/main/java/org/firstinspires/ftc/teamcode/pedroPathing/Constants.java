@@ -18,10 +18,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 
 public class Constants {
-    private static double pH = 0.8;
+    private static double pH = 1;
     private static double iH = 0;
-    private static double dH = 0.01;
-    private static double fH = 0;
+    private static double dH = 0.02;
+    private static double fH = 0.02;
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(11.3)
             .forwardZeroPowerAcceleration(-76.91)
@@ -30,13 +30,25 @@ public class Constants {
                     0.1,
                     0,
                     0.01,
-                    0.025
+                    0.02
+            ))
+            .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(
+                    0.2,
+                    0,
+                    0.01,
+                    0.02
             ))
             .headingPIDFCoefficients(new PIDFCoefficients(
                     pH,
                     iH,
                     dH,
                     fH
+            ))
+            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(
+                    2,
+                    0,
+                    0.02,
+                    0.02
             ))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(
                     0.01,
@@ -46,7 +58,7 @@ public class Constants {
                     0.014
             ))
             .centripetalScaling(0)
-            .useSecondaryDrivePIDF(true)
+            .useSecondaryDrivePIDF(false)
             .useSecondaryHeadingPIDF(true)
             .useSecondaryTranslationalPIDF(true);
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
