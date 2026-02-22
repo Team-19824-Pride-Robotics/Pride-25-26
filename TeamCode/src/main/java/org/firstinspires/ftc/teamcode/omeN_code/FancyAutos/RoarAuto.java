@@ -9,7 +9,10 @@ import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleCl
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarthestPose;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarthestPose2;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarthestPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarthestPoseR2;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleFarthestPoseR3;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.gobbleMidPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupClosePose;
@@ -55,7 +58,7 @@ public class RoarAuto extends OpMode {
 
 
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer, relocTimer;
+    private Timer pathTimer, actionTimer, opmodeTimer, relocTimer, loopTimer;
     private int pathState;
     private static double scoreHeadingTolerance=0.05;
     private static double scoreTranslationalConstraint=0.5;
@@ -74,19 +77,25 @@ public class RoarAuto extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private int launchVel=1420;
-    private static double UpRightPos=120;
-    private static double UpLeftPos=230;
-    private static double DownRightPos=90;
-    private static double DownLeftPos=290;
-    private static double intakePower=-0.9;
+    private static int closeVel=1080;
+    private static int farVel=1300;
+    private static int ejectVel=600;
+    private static int farTol=0;
+    private static int closeTol=20;
+    private int launchVel=farVel;
+    private int launchTol;
+    private static double UpRightPos=130;
+    private static double UpLeftPos=236;
+    private static double DownRightPos=92;
+    private static double DownLeftPos=285;
+    private static double intakePower=-1;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
-    private static double colorSensorTimeout=2;
+    private static double colorSensorTimeout=1;
     private static double gateOpenWait=0.5;
     private boolean firstLaunch=true;
 
-    private boolean launch=false;
+    private boolean eject =false;
     private boolean startNextPose=true;
     public void buildPaths() {
         if(!redAlliance) {
@@ -140,17 +149,17 @@ public class RoarAuto extends OpMode {
 
             grabPickup3 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scoreFarPose, lineupMidPose))
-                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupMidPose.getHeading())
-                    .addPath(new BezierLine(lineupMidPose, gobbleMidPose))
-                    .setConstantHeadingInterpolation(lineupMidPose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupFarthestPose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupFarthestPose.getHeading())
+                    .addPath(new BezierLine(lineupFarthestPose, gobbleFarthestPose2))
+                    .setLinearHeadingInterpolation(lineupFarthestPose.getHeading(), gobbleFarthestPose2.getHeading())
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleMidPose, scoreFarPose))
+                    .addPath(new BezierLine(gobbleFarthestPose2, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarthestPose2.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -171,19 +180,19 @@ public class RoarAuto extends OpMode {
           turns on the intake and gobbles them up in a line  */
 
             grabPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(scoreFarPoseR, lineupFarthestPoseR))
-                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupFarthestPoseR.getHeading())
-                    .addPath(new BezierLine(lineupFarthestPoseR, gobbleFarthestPoseR))
-                    .setConstantHeadingInterpolation(lineupFarthestPoseR.getHeading())
+                    .addPath(new BezierLine(scoreFarPoseR, lineupFarPoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupFarPoseR.getHeading())
+                    .addPath(new BezierLine(lineupFarPoseR, gobbleFarPoseR))
+                    .setConstantHeadingInterpolation(lineupFarPoseR.getHeading())
                     .build();
 
             /* scorePickup1 PathChain --> moves to the scoring position  */
 
             scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarthestPoseR, scoreFarPoseR))
+                    .addPath(new BezierLine(gobbleFarPoseR, scoreFarPoseR))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(lineupFarthestPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarPoseR.getHeading(), scoreFarPoseR.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -192,34 +201,34 @@ public class RoarAuto extends OpMode {
 
             grabPickup2 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scoreFarPoseR, lineupFarPoseR))
-                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupFarPoseR.getHeading())
-                    .addPath(new BezierLine(lineupFarPoseR, gobbleFarPoseR))
-                    .setConstantHeadingInterpolation(lineupFarPoseR.getHeading())
+                    .addPath(new BezierLine(scoreFarPoseR, lineupMidPoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupMidPoseR.getHeading())
+                    .addPath(new BezierLine(lineupMidPoseR, gobbleMidPoseR))
+                    .setLinearHeadingInterpolation(lineupMidPoseR.getHeading(), gobbleMidPoseR.getHeading())
                     .build();
 
             scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarPoseR, scoreFarPoseR))
+                    .addPath(new BezierLine(gobbleMidPoseR, scoreFarPoseR))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarthestPoseR2.getHeading(), scoreFarPoseR.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
 
             grabPickup3 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scoreFarPoseR, lineupMidPoseR))
-                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupMidPoseR.getHeading())
-                    .addPath(new BezierLine(lineupMidPoseR, gobbleMidPoseR))
-                    .setConstantHeadingInterpolation(lineupMidPoseR.getHeading())
+                    .addPath(new BezierLine(scoreFarPoseR, lineupFarthestPoseR))
+                    .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupFarthestPoseR.getHeading())
+                    .addPath(new BezierLine(lineupFarthestPoseR, gobbleFarthestPoseR3))
+                    .setLinearHeadingInterpolation(lineupFarthestPoseR.getHeading(), gobbleFarthestPoseR3.getHeading())
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleMidPoseR, scoreFarPoseR))
+                    .addPath(new BezierLine(gobbleFarthestPoseR3, scoreFarPoseR))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleMidPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarthestPoseR3.getHeading(), scoreFarPoseR.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -240,7 +249,7 @@ public class RoarAuto extends OpMode {
 //Start flywheel, set speed, go to score pos
             case 0:
 
-                follower.setMaxPower(1);  //slow down the path following if necessary
+                switchToFar();
                 follower.followPath(scorePreload, true);
                 startNextPose=false;
                 setPathState(1);
@@ -249,32 +258,32 @@ public class RoarAuto extends OpMode {
             case 1:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-
-                    launch=true;
                     launchArtifactsE();
-                    follower.followPath(grabPickup1, true);
-                    startIntake();
-                    setPathState(3);
-
+                    launchVel=ejectVel;
+                    if(startNextPose) {
+                        follower.followPath(grabPickup1, true);
+                        startIntake();
+                        setPathState(2);
+                    }
                 }
                 break;
-                //Do nothing lmao
+            //Open gate, go to launch 2nd set
             case 2:
-
                 if(!follower.isBusy()) {
                     actionTimer.resetTimer();
                     while(actionTimer.getElapsedTimeSeconds()<gateOpenWait){
                         flywheel.update(launchVel);
                         follower.update();
                     }
+                    checkOverflow();
                     setPathState(3);
                 }
                 break;
 //go to launch 2nd set
             case 3:
                 if(!follower.isBusy()) {
+                    switchToFar();
                     startIntake();
-                    unBlock();
                     follower.followPath(scorePickup1,true);
                     startNextPose=false;
                     setPathState(4);
@@ -284,11 +293,13 @@ public class RoarAuto extends OpMode {
             case 4:
                 if(!follower.isBusy()) {
                     reverseIntake();
-                    launchArtifactsTwo();
+                    launchArtifactsE();
+                    launchVel=ejectVel;
                     startIntake();
                     if(startNextPose) {
                         startIntake();
                         follower.followPath(grabPickup2, true);
+                        eject();
                         setPathState(5);
                     }
                 }
@@ -296,7 +307,8 @@ public class RoarAuto extends OpMode {
 //go to launch 3rd set
             case 5:
                 if(!follower.isBusy()) {
-                    unBlock();
+                    checkOverflow();
+                    switchToFar();
                     follower.followPath(scorePickup2,true);
                     setPathState(6);
                 }
@@ -306,17 +318,18 @@ public class RoarAuto extends OpMode {
                 if(!follower.isBusy()) {
                     reverseIntake();
                     launchArtifactsE();
-                    startIntake();
-                    relocalize();
+                    launchVel=ejectVel;
                     startIntake();
                     follower.followPath(grabPickup3,true);
+                    eject();
                     setPathState(7);
                 }
                 break;
 //go to launch 4th set
             case 7:
                 if(!follower.isBusy()) {
-                    unBlock();
+                    checkOverflow();
+                    switchToFar();
                     follower.followPath(scorePickup3,true);
                     setPathState(8);
                 }
@@ -328,7 +341,6 @@ public class RoarAuto extends OpMode {
                     reverseIntake();
                     launchArtifactsE();
                     startIntake();
-                    relocalize();
                     stopIntake();
                     follower.followPath(park, false);
                     setPathState(9);
@@ -352,16 +364,16 @@ public class RoarAuto extends OpMode {
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
     @Override
     public void loop() {
-
+        loopTimer.resetTimer();
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
 
         flywheel.update(launchVel);
         autonomousPathUpdate();
 
-        relocalize();
 
         // Feedback to Driver Hub for debugging
+        telemetry.addData("loop time: ", loopTimer.getElapsedTime());
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
@@ -376,6 +388,7 @@ public class RoarAuto extends OpMode {
         actionTimer = new Timer();
         opmodeTimer = new Timer();
         relocTimer = new Timer();
+        loopTimer = new Timer();
         opmodeTimer.resetTimer();
 
         intake = new intake(hardwareMap );
@@ -432,7 +445,14 @@ public class RoarAuto extends OpMode {
 
 
 
-
+    public void switchToFar(){
+        launchVel=farVel;
+        launchTol=farTol;
+    }
+    public void switchToClose(){
+        launchVel=closeVel;
+        launchTol=closeTol;
+    }
     public void startIntake(){
         intake.setPower(intakePower);
         intake.update();
@@ -440,52 +460,33 @@ public class RoarAuto extends OpMode {
         intake.setPower(-intakePower);
         intake.update();
     }
-    public void unBlock(){
-        ballKickers.retractLeft();
-        ballKickers.retractRight();
-    }
     public void stopIntake(){
         intake.setPower(0);
     }
-    public void launchArtifactsE() {
-        actionTimer.resetTimer();
-        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
-            flywheel.update(launchVel);
-            follower.update();
-            telemetry.addData("launchVel", flywheel.getVelocity());
-            telemetry.update();
-        }
-        if(distanceSensors.getSide()==1){ //If efficient side is right
-            kickRight();
-            if(firstLaunch){
-                startIntake();
-                firstLaunch=false;
+    public void checkOverflow(){
+        if(distanceSensors.getCount()>1){
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(ballKickers.getRightPos()<UpRightPos){
+                follower.update();
+                flywheel.update(launchVel);
             }
-            kickLeft();
-        } else{
-            kickLeft();
-            if(firstLaunch){
-                startIntake();
-                firstLaunch=false;
+            ballKickers.retractRight();
+            ballKickers.update();
+        }
+    }
+    public void eject(){
+        if(eject){
+            ballKickers.kickBoth();
+            ballKickers.update();
+            while(ballKickers.getRightPos()<UpRightPos){
+                follower.update();
+                flywheel.update(launchVel);
             }
-            kickRight();
+            ballKickers.retractBoth();
+            ballKickers.update();
+            eject=false;
         }
-        actionTimer.resetTimer();
-        while((ballKickers.getRightPos()>DownRightPos)&&(ballKickers.getLeftPos()<DownLeftPos)){
-            flywheel.update(launchVel);
-            follower.update();
-        }
-        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
-            flywheel.update(launchVel);
-            follower.update();
-        }
-//        actionTimer.resetTimer();
-//        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
-//            flywheel.update(launchVel);
-//        }
-        kickBoth();
-
-        startNextPose=true;
     }
     public void launchArtifactsTwo() {
         actionTimer.resetTimer();
@@ -513,12 +514,57 @@ public class RoarAuto extends OpMode {
 
         startNextPose=true;
     }
-    public void kickLeft(){
-        while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
+    public void launchArtifactsE() {
+        actionTimer.resetTimer();
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait){
             flywheel.update(launchVel);
             follower.update();
-            telemetry.addData("launchVel", flywheel.getVelocity());
-            telemetry.update();
+        }
+        if(distanceSensors.getSide()==1){ //If efficient side is right
+            kickRight();
+            if(firstLaunch){
+                startIntake();
+                firstLaunch=false;
+            }
+            kickLeft();
+        } else{
+            kickLeft();
+            if(firstLaunch){
+                startIntake();
+                firstLaunch=false;
+            }
+            kickRight();
+        }
+        actionTimer.resetTimer();
+        while((ballKickers.getRightPos()>DownRightPos)||(ballKickers.getLeftPos()<DownLeftPos)){
+            flywheel.update(launchVel);
+            follower.update();
+        }
+        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+            flywheel.update(launchVel);
+            follower.update();
+        }
+//        actionTimer.resetTimer();
+//        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
+//            flywheel.update(launchVel);
+//        }
+        if(colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1){
+            kickLeft();
+            eject=true;
+        }else {
+            kickBoth();
+        }
+        actionTimer.resetTimer();
+        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
+            flywheel.update(launchVel);
+            follower.update();
+        }
+        startNextPose=true;
+    }
+    public void kickLeft(){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+            flywheel.update(launchVel);
+            follower.update();
         }
         ballKickers.kickLeft();
         ballKickers.update();
@@ -530,11 +576,9 @@ public class RoarAuto extends OpMode {
         ballKickers.update();
     }
     public void kickRight(){
-        while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
             follower.update();
             flywheel.update(launchVel);
-            telemetry.addData("launchVel", flywheel.getVelocity());
-            telemetry.update();
         }
         ballKickers.kickRight();
         ballKickers.update();
@@ -546,14 +590,14 @@ public class RoarAuto extends OpMode {
         ballKickers.update();
     }
     public void kickBoth(){
-        while(Math.abs(flywheel.getVelocity()-launchVel)!=0){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()<UpRightPos)&&(ballKickers.getLeftPos()>UpLeftPos)){
+        while((ballKickers.getRightPos()<UpRightPos)||(ballKickers.getLeftPos()>UpLeftPos)){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -562,13 +606,5 @@ public class RoarAuto extends OpMode {
         ballKickers.retractLeft();
         ballKickers.update();
     }
-    public void relocalize(){
-//        if(limelight.isValid()){
-//            limelight.update(follower.getHeading());
-//            if (follower.getPose().getY()>72){
-//                follower.setPose(limelight.relocalize(follower.getHeading()));
-//            }
-//
-//        }
-    }
+
 }

@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 
 public class Constants {
-    private static double pH = 1;
+    private static double pH = 1.5;
     private static double iH = 0;
     private static double dH = 0.02;
     private static double fH = 0.02;
@@ -45,7 +45,7 @@ public class Constants {
                     fH
             ))
             .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(
-                    2,
+                    3,
                     0,
                     0.02,
                     0.02

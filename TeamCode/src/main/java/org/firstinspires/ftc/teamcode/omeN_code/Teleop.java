@@ -89,457 +89,460 @@ public class Teleop extends LinearOpMode {
     //Other stuff
     InterpLUT lut = new InterpLUT();
     InterpLUT lutC = new InterpLUT();
-    Timer relocWait;
     Timer loopTime;
 
 //Auto aim
 
 
     @Override
-    public void runOpMode() throws InterruptedException {
+        public void runOpMode() throws InterruptedException {
 
-        //Intep table setup
-        lut.add(0, 1000);
-        lut.add(48, 1140);
-        lut.add(55, 1180);
-        lut.add(60, 1200);
-        lut.add(65, 1220);
-        lut.add(70, 1220);
-        lut.add(75, 1240);
-        lut.add(80, 1260);
-        lut.add(85, 1280);
-        lut.add(90, 1300);
-        lut.add(95, 1280);
-        lut.add(100, 1300);
-        lut.add(105, 1320);
-        lut.add(110, 1360);
-        lut.add(115, 1440);
-        lut.add(120, 1440);
-        lut.add(125, 1460);
-        lut.add(130, 1480);
-        lut.add(999, 1500);
+            //Intep table setup
+            lut.add(0, 1000);
+            lut.add(48, 1060);
+            lut.add(58, 1080);
+            lut.add(65, 1100);
+            lut.add(70, 1120);
+            lut.add(75, 1140);
+            lut.add(80, 1160);
+            lut.add(85, 1180);
+            lut.add(90, 1200);
+            lut.add(95, 1220);
+            lut.add(100, 1240);
+            lut.add(105, 1260);
+            lut.add(110, 1280);
+            lut.add(115, 1300);
+            lut.add(120, 1320);
+            lut.add(128, 1360);
+            lut.add(133, 1380);
+            lut.add(138, 1400);
+            lut.add(143, 1420);
 
-
-        lut.createLUT();
-
+            lut.add(999, 1500);
 
 
-        lutC.add(0, 1300);
-        lutC.add(55, 1300);
-        lutC.add(60, 1300);
-        lutC.add(65, 1320);
-        lutC.add(70, 1340);
-        lutC.add(75, 1360);
-        lutC.add(80, 1380);
-        lutC.add(85, 1400);
-        lutC.add(90, 1420);
-        lutC.add(95, 1430);
-        lutC.add(100, 1300);
-        lutC.add(105, 1320);
-        lutC.add(110, 1340);
-        lutC.add(115, 1340);
-        lutC.add(120, 1360);
-        lutC.add(125, 1400);
-        lutC.add(130, 1440);
-        lutC.add(999, 1440);
+            lut.createLUT();
 
-        lutC.createLUT();
 
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
-        for (LynxModule hub : allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
+            lutC.add(0, 1300);
+            lutC.add(65, 1300);
+            lutC.add(70, 1300);
+            lutC.add(75, 1320);
+            lutC.add(80, 1340);
+            lutC.add(85, 1360);
+            lutC.add(90, 1380);
+            lutC.add(95, 1400);
+            lutC.add(100, 1420);
+            lutC.add(105, 1430);
+            lutC.add(110, 1320);
+            lutC.add(115, 1320);
+            lutC.add(120, 1340);
+            lutC.add(125, 1340);
+            lutC.add(130, 1360);
+            lutC.add(135, 1400);
+            lutC.add(140, 1440);
 
-        //Declare mechs
-        intake = new intake(hardwareMap);
-        limelight = new limelight(hardwareMap);
-        flywheel = new flywheel(hardwareMap);
-        ballKickers = new ballKickers(hardwareMap);
-        colorSensors = new colorSensors(hardwareMap);
-        distanceSensors = new distanceSensors(hardwareMap);
+            lutC.add(999, 1440);
 
-        //init mechs
-        limelight.init();
-        limelight.setPipeline(3);
-        flywheel.init();
-        ballKickers.retractRight();
-        ballKickers.retractLeft();
-        lLActive = limelight.isActive();
+            lutC.createLUT();
 
-        if(redAlliance) {
-            limelight.setPipeline(4);
-        } else {
-            limelight.setPipeline(3);
-        }
+            List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
-            if(startingPose==null) {
-                if (redAlliance) {
-                    startingPose = new Pose(89, 9, Math.toRadians(90));
-                } else {
-                    startingPose = new Pose(144 - 89, 9, Math.toRadians(90));
-                }
-            }
-        follower = Constants.createFollower(hardwareMap);
-        follower.setPose(startingPose);
-        PIDFController controller = new PIDFController(follower.constants.coefficientsSecondaryHeadingPIDF);
-
-        if(!allianceSelected){
-            telemetry.addData("WARNING: ALLIANCE NOT SELECTED\nDEFAULT ALLIANCE IS BLUE","" );
-            telemetry.update();
-        }
-
-        waitForStart();
-
-        if (isStopRequested()) return;
-        follower.startTeleopDrive();
-        relocWait = new Timer();
-        loopTime = new Timer();
-        relocWait.resetTimer();
-        while (opModeIsActive()) {
-            loopTime.resetTimer();
             for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
-            follower.update();
-            //Hardware reads
-            leftKickerPos= ballKickers.getLeftPos();
-            rightKickerPos= ballKickers.getRightPos();
-            currentPose=follower.getPose();
-            flywheelVelocity=flywheel.getVelocity();
-
-            farSide= follower.getPose().getY() < 0;
-            //heading lock and drive control
-            if(gamepad1.right_bumper || gamepad1.left_bumper){
-                headingLock=true;
-            }
-            if(headingLock && !farZoneAim) {
-                PathChain pathChain;
-                if(lLActive) {
-                    if (redAlliance) {
-                        goalAng = Math.atan2(134 - follower.getPose().getY(), 134 - follower.getPose().getX());
-                    } else {
-                        goalAng = Math.atan2(134 - follower.getPose().getY(), 10-follower.getPose().getX());
-                    }
-                    follower.turnTo(goalAng);
-                }
+                hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
             }
 
-            //Relocalize heading in case of error
-            if (gamepad1.dpad_right) {
-                Pose currentPose = follower.getPose();
-                if(redAlliance) {
-                    follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(0)));
-                }else{
-                    follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(180)));
-                }
-            }
+            //Declare mechs
+            intake = new intake(hardwareMap);
+            limelight = new limelight(hardwareMap);
+            flywheel = new flywheel(hardwareMap);
+            ballKickers = new ballKickers(hardwareMap);
+            colorSensors = new colorSensors(hardwareMap);
+            distanceSensors = new distanceSensors(hardwareMap);
 
-            if (gamepad1.a) { //Go to far zone launch
-                farZoneAim=true;
-                PathChain pathChain;// start
-// end
-                if(redAlliance) {
-                    goalAng=Math.toRadians(farAngRed);
-                    pathChain = follower.pathBuilder()
-                            .addPath(
-                                    new Path(
-                                            new BezierLine(
-                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(88, 15, Math.toRadians(farAngRed))                                      // end
-                                            ),
-                                            pathConstraints
-                                    )
-                            )
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(farAngRed))
-                            .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
-                            .setTranslationalConstraint(scoreTranslationalConstraint)
-                            .build();
-                } else{
-                    goalAng=Math.toRadians(farAngBlue);
-                    pathChain = follower.pathBuilder()
-                            .addPath(
-                                    new Path(
-                                            new BezierLine(
-                                                    new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
-                                                    new Pose(144-88, 15, Math.toRadians(farAngBlue))                                        // end
-                                            ),
-                                            pathConstraints
-                                    )
-                            )
-                            .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
-                            .setTranslationalConstraint(scoreTranslationalConstraint)
-                            .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(farAngBlue))
-                            .build();
-                }
-                follower.followPath(pathChain);
+            //init mechs
+            limelight.init();
+            limelight.setPipeline(3);
+            flywheel.init();
+            ballKickers.retractRight();
+            ballKickers.retractLeft();
+            lLActive = limelight.isActive();
 
-            }
-            //Enable drive if we're not auto-targeting
-            if (!headingLock && !farZoneAim) {
-                if(!follower.getTeleopDrive()) {
-                    follower.startTeleopDrive();
-                }
-                follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
-            }
-
-
-            if(gamepad1.b){
-                headingLock=false;
-                farZoneAim=false;
-
-                follower.startTeleopDrive();
-            } if(gamepad1.y){
-                headingLock=true;
-            }
-            if(limelight.isValid()){
-                limelight.update(follower.getHeading());
-                if (firstReloc) {
-                    if(gamepad1.right_bumper || gamepad1.left_bumper) {
-                        follower.setPose(limelight.relocalize(follower.getHeading()));
-                    }
-                }else {
-                    if (follower.getPose().getY()>72){
-                        follower.setPose(limelight.relocalize(follower.getHeading()));
-                    }
-                }
-            }
-            //////////////
-            //Mechansims//
-            //////////////
-
-            //intake
-            manualIntaking = gamepad1.right_trigger > 0.1 || gamepad1.left_trigger > 0.1;
-            if(manualIntaking) {
-                intake.setPower((gamepad1.right_trigger - gamepad1.left_trigger) * intakePowerDampening);
-            }
-            else{
-                intake.setPower(setIntakePow);
-            }
-            if(launchQueue>0 && launchQueue<3){
-                setIntakePow=-1;
-            } else{
-                setIntakePow=0;
-            }
-
-            //Emergency flywheel control
-            if(gamepad1.dpad_down){
-                unJam=true;
-                disableFlywheel=false;
-            }
-            if(gamepad1.dpad_left){
-                unJam=false;
-                disableFlywheel=true;
-            }
-            if(gamepad1.dpad_up){
-                unJam=false;
-                disableFlywheel=false;
-            }
-
-
-            //Launch type selection
-            if(gamepad1.start){
-                indexMode=true;
-            } if(gamepad1.share){
-                indexMode=false;
-            }
-            if (indexMode) {
-                if (gamepad1.right_bumper) {
-                    launchRight = true;
-                }
-                if (gamepad1.left_bumper) {
-                    launchLeft = true;
-                }
-                if (gamepad1.b) {
-                    launchLeft = false;
-                    launchRight = false;
-                }
-                launchE = false;
+            if(redAlliance) {
+                limelight.setPipeline(4);
             } else {
-                if (gamepad1.right_bumper || gamepad1.left_bumper) {
-                    launchE = true;
-                    launchQueue = 3;
-                }
-                if (gamepad1.b) {
-                    launchE = false;
-                    secondDoubleLaunch = false;
-                    launchLeft=false;
-                    launchRight=false;
-                    launchQueue = 0;
-                }
+                limelight.setPipeline(3);
             }
 
-            //launch logic
-            if(!unJam&&!disableFlywheel) {
-                if (limelight.isValid()) {
-                    distance = limelight.getDistance();
-                }
-                if(!secondDoubleLaunch && !farSide && !indexMode) {
-                    launchVel = lutC.get(distance);
-                }else{
-                    launchVel = lut.get(distance);
-                }
-
-            } else if (!disableFlywheel||unJam) {
-                launchVel=0;
-            }
-
-
-            //Kicker logic for non index mode
-            if (!indexMode) {
-                //Kickstart first launch
-                if (launchE && !launchLeft && !launchRight) {
-                    if (farSide) {
-                        if (launchQueue > 1) {
-                            if (distanceSensors.getSide() == 1) {
-                                launchRight = true;
-                            } else {
-                                launchLeft = true;
-                            }
-                        }
-
+                if(startingPose==null) {
+                    if (redAlliance) {
+                        startingPose = new Pose(89, 9, Math.toRadians(90));
                     } else {
-                        launchLeft = true;
-                        
+                        startingPose = new Pose(144 - 89, 9, Math.toRadians(90));
+                    }
+                }
+            follower = Constants.createFollower(hardwareMap);
+            follower.setPose(startingPose);
+            PIDFController controller = new PIDFController(follower.constants.coefficientsSecondaryHeadingPIDF);
+
+            if(!allianceSelected){
+                telemetry.addData("WARNING: ALLIANCE NOT SELECTED\nDEFAULT ALLIANCE IS BLUE","" );
+                telemetry.update();
+            }
+
+            waitForStart();
+
+            if (isStopRequested()) return;
+            follower.startTeleopDrive();
+            loopTime = new Timer();
+            while (opModeIsActive()) {
+                loopTime.resetTimer();
+                for (LynxModule hub : allHubs) {
+                    hub.clearBulkCache();
+                }
+                follower.update();
+                //Hardware reads
+                leftKickerPos= ballKickers.getLeftPos();
+                rightKickerPos= ballKickers.getRightPos();
+                currentPose=follower.getPose();
+                flywheelVelocity=flywheel.getVelocity();
+
+                farSide= follower.getPose().getY() < 144;
+                //heading lock and drive control
+                if(gamepad1.right_bumper || gamepad1.left_bumper){
+                    headingLock=true;
+                }
+                if(headingLock && !farZoneAim) {
+                    PathChain pathChain;
+                    if(lLActive) {
+                        if (redAlliance) {
+                            goalAng = Math.atan2(134 - follower.getPose().getY(), 139 - follower.getPose().getX());
+                        } else {
+                            goalAng = Math.atan2(134 - follower.getPose().getY(), 10-follower.getPose().getX());
+                        }
+                        follower.turnTo(goalAng);
                     }
                 }
 
+                //Relocalize heading in case of error
+                if (gamepad1.dpad_right) {
+                    Pose currentPose = follower.getPose();
+                    if(redAlliance) {
+                        follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(0)));
+                    }else{
+                        follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(180)));
+                    }
+                }
 
-                if (!farSide) {
-                    //Launch left and right don't rly make sense, i just didn't wanna make more vars
-                    //left is just first set and right is second
-                    if(launchLeft){
-                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
-                            ballKickers.kickBoth();
+                if (gamepad1.a) { //Go to far zone launch
+                    farZoneAim=true;
+                    PathChain pathChain;// start
+    // end
+                    if(redAlliance) {
+                        goalAng=Math.toRadians(farAngRed);
+                        pathChain = follower.pathBuilder()
+                                .addPath(
+                                        new Path(
+                                                new BezierLine(
+                                                        new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                        new Pose(88, 15, Math.toRadians(farAngRed))                                      // end
+                                                ),
+                                                pathConstraints
+                                        )
+                                )
+                                .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(farAngRed))
+                                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                                .setTranslationalConstraint(scoreTranslationalConstraint)
+                                .build();
+                    } else{
+                        goalAng=Math.toRadians(farAngBlue);
+                        pathChain = follower.pathBuilder()
+                                .addPath(
+                                        new Path(
+                                                new BezierLine(
+                                                        new Pose(follower.getPose().getX(), follower.getPose().getY()), // start
+                                                        new Pose(144-88, 15, Math.toRadians(farAngBlue))                                        // end
+                                                ),
+                                                pathConstraints
+                                        )
+                                )
+                                .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                                .setTranslationalConstraint(scoreTranslationalConstraint)
+                                .setLinearHeadingInterpolation(follower.getHeading(), Math.toRadians(farAngBlue))
+                                .build();
+                    }
+                    follower.followPath(pathChain);
+
+                }
+                //Enable drive if we're not auto-targeting
+                if (!headingLock && !farZoneAim) {
+                    if(!follower.getTeleopDrive()) {
+                        follower.startTeleopDrive();
+                    }
+                    follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x);
+                }
+
+
+                if(gamepad1.b){
+                    headingLock=false;
+                    farZoneAim=false;
+
+                    follower.startTeleopDrive();
+                } if(gamepad1.y){
+                    headingLock=true;
+                }
+                if(limelight.isValid()){
+                    limelight.update(follower.getHeading());
+                    if (firstReloc) {
+                        if(gamepad1.right_bumper || gamepad1.left_bumper) {
+                            follower.setPose(limelight.relocalize(follower.getHeading()));
+                            firstReloc=false;
                         }
-                        if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
-                            ballKickers.retractBoth();
-                            secondDoubleLaunch=true;
-                            launchRight=true;
-                            launchLeft=false;
+                    }else {
+                        if (follower.getPose().getY()>72&&(gamepad1.right_bumper || gamepad1.left_bumper)){
+                            follower.setPose(limelight.relocalize(follower.getHeading()));
                         }
                     }
-                    if(launchRight){
-                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
-                            ballKickers.kickBoth();
-                            secondDoubleLaunch=false;
-                        }
-                        if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos && !secondDoubleLaunch){
-                            ballKickers.retractBoth();
-                            launchE=false;
-                            launchRight=false;
-                        }
-                    }
+                }
+                //////////////
+                //Mechansims//
+                //////////////
 
+                //intake
+                manualIntaking = gamepad1.right_trigger > 0.1 || gamepad1.left_trigger > 0.1;
+                if(manualIntaking) {
+                    intake.setPower((gamepad1.right_trigger - gamepad1.left_trigger) * intakePowerDampening);
+                }
+                else{
+                    intake.setPower(setIntakePow);
+                }
+                if(launchQueue>0 && launchQueue<3){
+                    setIntakePow=-1;
+                } else{
+                    setIntakePow=0;
+                }
+
+                //Emergency flywheel control
+                if(gamepad1.dpad_down){
+                    unJam=true;
+                    disableFlywheel=false;
+                }
+                if(gamepad1.dpad_left){
+                    unJam=false;
+                    disableFlywheel=true;
+                }
+                if(gamepad1.dpad_up){
+                    unJam=false;
+                    disableFlywheel=false;
+                }
+
+
+                //Launch type selection
+                if(gamepad1.start){
+                    indexMode=true;
+                } if(gamepad1.share){
+                    indexMode=false;
+                }
+                if (indexMode) {
+                    if (gamepad1.right_bumper) {
+                        launchRight = true;
+                    }
+                    if (gamepad1.left_bumper) {
+                        launchLeft = true;
+                    }
+                    if (gamepad1.b) {
+                        launchLeft = false;
+                        launchRight = false;
+                    }
+                    launchE = false;
                 } else {
-                    //Launch logic
-                    if (launchRight) {
-                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
-                            if (launchQueue == 1) {
-                                if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
-                                    ballKickers.kickRight();
-                                    ballKickers.kickLeft();
+                    if (gamepad1.right_bumper || gamepad1.left_bumper) {
+                        launchE = true;
+                        launchQueue = 3;
+                    }
+                    if (gamepad1.b) {
+                        launchE = false;
+                        secondDoubleLaunch = false;
+                        launchLeft=false;
+                        launchRight=false;
+                        launchQueue = 0;
+                    }
+                }
+
+                //launch logic
+                if(!unJam&&!disableFlywheel) {
+                    if (limelight.isValid()) {
+                        distance = limelight.getDistance();
+                    }
+                    if(!secondDoubleLaunch && !farSide && !indexMode) {
+                        launchVel = lutC.get(distance);
+                    }else{
+                        launchVel = lut.get(distance);
+                    }
+
+                } else if (!disableFlywheel||unJam) {
+                    launchVel=0;
+                }
+
+
+                //Kicker logic for non index mode
+                if (!indexMode) {
+                    //Kickstart first launch
+                    if (launchE && !launchLeft && !launchRight) {
+                        if (farSide) {
+                            if (launchQueue > 1) {
+                                if (distanceSensors.getSide() == 1) {
+                                    launchRight = true;
+                                } else {
                                     launchLeft = true;
                                 }
-                            } else {
-                                ballKickers.kickRight();
                             }
+
+                        } else {
+                            launchLeft = true;
+
                         }
                     }
 
-                    if (launchLeft) {
-                        if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && leftKickerPos < DownLeftPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 1) {
-                            if (launchQueue == 1) {
-                                if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+
+                    if (!farSide) {
+                        //Launch left and right don't rly make sense, i just didn't wanna make more vars
+                        //left is just first set and right is second
+                        if(launchLeft){
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
+                                ballKickers.kickBoth();
+                            }
+                            if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
+                                ballKickers.retractBoth();
+                                secondDoubleLaunch=true;
+                                launchRight=true;
+                                launchLeft=false;
+                            }
+                        }
+                        if(launchRight){
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
+                                ballKickers.kickBoth();
+                                secondDoubleLaunch=false;
+                            }
+                            if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos && !secondDoubleLaunch){
+                                ballKickers.retractBoth();
+                                launchE=false;
+                                launchRight=false;
+                            }
+                        }
+
+                    } else {
+                        //Launch logic
+                        if (launchRight) {
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
+                                if (launchQueue == 1) {
+                                    if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+                                        ballKickers.kickRight();
+                                        ballKickers.kickLeft();
+                                        launchLeft = true;
+                                    }
+                                } else {
                                     ballKickers.kickRight();
-                                    ballKickers.kickLeft();
-                                    launchRight = true;
                                 }
-                            } else {
-                                ballKickers.kickLeft();
+                            }
+                        }
+
+                        if (launchLeft) {
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && leftKickerPos < DownLeftPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
+                                if (launchQueue == 1) {
+                                    if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+                                        ballKickers.kickRight();
+                                        ballKickers.kickLeft();
+                                        launchRight = true;
+                                    }
+                                } else {
+                                    ballKickers.kickLeft();
+                                }
+                            }
+                        }
+
+                        //Retraction logic
+                        if (launchLeft && leftKickerPos < UpLeftPos) {
+                            ballKickers.retractLeft();
+                            launchLeft = false;
+                            if (launchQueue > 1) {
+                                launchRight = true;
+                            }
+                            if (launchQueue > 0) {
+                                launchQueue--;
+                            }
+                            if (launchQueue == 0) {
+                                headingLock = false;
+                            }
+                        }
+                        if (launchRight && rightKickerPos > UpRightPos) {
+                            ballKickers.retractRight();
+                            launchRight = false;
+                            if (launchQueue > 1) {
+                                launchLeft = true;
+                            }
+                            if (launchQueue > 0) {
+                                launchQueue--;
+                            }
+                            if (launchQueue == 0) {
+                                headingLock = false;
                             }
                         }
                     }
-
-                    //Retraction logic
-                    if (launchLeft && leftKickerPos < UpLeftPos) {
+                } else {
+                    if (launchRight) {
                         ballKickers.retractLeft();
-                        launchLeft = false;
-                        if (launchQueue > 1) {
-                            launchRight = true;
-                        }
-                        if (launchQueue > 0) {
-                            launchQueue--;
-                        }
-                        if (launchQueue == 0) {
-                            headingLock = false;
+                        if (Math.abs(flywheel.getVelocity()-launchVel)<20  && rightKickerPos < DownRightPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<2) {
+                            ballKickers.kickRight();
                         }
                     }
                     if (launchRight && rightKickerPos > UpRightPos) {
                         ballKickers.retractRight();
                         launchRight = false;
-                        if (launchQueue > 1) {
-                            launchLeft = true;
-                        }
-                        if (launchQueue > 0) {
-                            launchQueue--;
-                        }
-                        if (launchQueue == 0) {
-                            headingLock = false;
+                    }
+
+                    if (launchLeft) {
+                        ballKickers.retractRight();
+                        if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<2) {
+                            ballKickers.kickLeft();
                         }
                     }
-                }
-            } else {
-                if (launchRight) {
-                    ballKickers.retractLeft();
-                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && rightKickerPos < DownRightPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<1) {
-                        ballKickers.kickRight();
+                    if (launchLeft && leftKickerPos < UpLeftPos) {
+                        ballKickers.retractLeft();
+                        launchLeft = false;
                     }
                 }
-                if (launchRight && rightKickerPos > UpRightPos) {
-                    ballKickers.retractRight();
-                    launchRight = false;
+                if((gamepad1.right_bumper||gamepad1.left_bumper)&&leftKickerPos>DownLeftPos&&rightKickerPos<DownRightPos){
+                    ballKickers.retractBoth();
                 }
 
-                if (launchLeft) {
-                    ballKickers.retractRight();
-                    if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<1) {
-                        ballKickers.kickLeft();
-                    }
+                //update mechs
+                if(!unJam) {
+                    flywheel.update(launchVel);
+                } else{
+                    flywheel.setPower(1);
                 }
-                if (launchLeft && leftKickerPos < UpLeftPos) {
-                    ballKickers.retractLeft();
-                    launchLeft = false;
-                }
+                ballKickers.update();
+                intake.update();
+                telemetry.addData("Loop Time:", loopTime.getElapsedTime());
+                telemetry.addData("X", follower.getPose().getX());
+                telemetry.addData("Y", follower.getPose().getY());
+                telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
+                telemetry.addData("Angle From Goal", limelight.getAngle());
+                telemetry.addData("Wheel speed ", flywheelVelocity);
+                telemetry.addData("Desired wheel speed", launchVel);
+                telemetry.addData("Distance From Goal: ", limelight.getDistance());
+                telemetry.addData("Right kciker pos: ", rightKickerPos);
+                telemetry.addData("Left kciker pos: ", leftKickerPos);
+                telemetry.addData("launchE", launchE);
+                telemetry.addData("launchQueue", launchQueue);
+                telemetry.addData("launchRight", launchRight);
+                telemetry.addData("launchQueue", launchLeft);
+                telemetry.update();
+
             }
-
-
-            //update mechs
-            if(!unJam) {
-                flywheel.update(launchVel);
-            } else{
-                flywheel.setPower(1);
-            }
-            ballKickers.update();
-            intake.update();
-            telemetry.addData("Loop Time:", loopTime.getElapsedTime());
-            telemetry.addData("X", follower.getPose().getX());
-            telemetry.addData("Y", follower.getPose().getY());
-            telemetry.addData("Heading", Math.toDegrees(follower.getPose().getHeading()));
-            telemetry.addData("Angle From Goal", limelight.getAngle());
-            telemetry.addData("Wheel speed ", flywheelVelocity);
-            telemetry.addData("Desired wheel speed", launchVel);
-            telemetry.addData("Distance From Goal: ", limelight.getDistance());
-            telemetry.addData("Right kciker pos: ", rightKickerPos);
-            telemetry.addData("Left kciker pos: ", leftKickerPos);
-            telemetry.addData("launchE", launchE);
-            telemetry.addData("launchQueue", launchQueue);
-            telemetry.addData("launchRight", launchRight);
-            telemetry.addData("launchQueue", launchLeft);
-            telemetry.update();
-
         }
-    }
 
 }
 
