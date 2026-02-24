@@ -16,6 +16,7 @@ import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFa
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.lineupMidPoseR;
+import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreClosePose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPose;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreFarPoseR;
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.Poses.scoreMidPose;
@@ -96,35 +97,52 @@ public class IndexingAuto extends OpMode {
     public void buildPaths() {
         if(!redAlliance) {
             scorePreload = follower.pathBuilder()
-                    .addPath(new BezierLine(startFarPose, scoreFarPose))
+                    .addPath(new BezierLine(startFarPose, scoreMidPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(startFarPose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(startFarPose.getHeading(), scoreMidPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
         /* grabPickup1 PathChain --> lines up for the first set of artifacts, then
           turns on the intake and gobbles them up in a line  */
 
+            grabPickup1B = follower.pathBuilder()
+                    .addPath(new BezierLine(scoreMidPose, lineupClosePose))
+                    .setLinearHeadingInterpolation(scoreMidPose.getHeading(), lineupClosePose.getHeading())
+                    //.addTemporalCallback(1, intake_change(1))
+                    .addPath(new BezierLine(lineupClosePose, gobbleClosePose))
+                    .setConstantHeadingInterpolation(lineupMidPose.getHeading())
+                    .build();
+
             grabPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(scoreFarPose, lineupMidPose))
-                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupMidPose.getHeading())
+                    .addPath(new BezierLine(scoreMidPose, lineupMidPose))
+                    .setLinearHeadingInterpolation(scoreMidPose.getHeading(), lineupMidPose.getHeading())
                     //.addTemporalCallback(1, intake_change(1))
                     .addPath(new BezierLine(lineupMidPose, gobbleMidPose))
                     .setConstantHeadingInterpolation(lineupMidPose.getHeading())
-                    .addPath(new BezierLine(gobbleMidPose, gateOpenPose))
-                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), gateOpenPose.getHeading())
+                    .addPath(new BezierLine(gobbleMidPose, lineupMidPose))
+                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), lineupMidPose.getHeading())
                     .build();
 
             /* scorePickup1 PathChain --> moves to the scoring position  */
 
-            scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(gateOpenPose, lineupMidPose))
-                    .setLinearHeadingInterpolation(gateOpenPose.getHeading(), lineupMidPose.getHeading())
-                    .addPath(new BezierLine(lineupMidPose, scoreMidPose))
+            scorePickup1B = follower.pathBuilder()
+                    .addPath(new BezierLine(gobbleClosePose, scoreMidPose))
+                    .setLinearHeadingInterpolation(gobbleClosePose.getHeading(), scoreMidPose.getHeading())
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
+                    .setVelocityConstraint(scoreVelocityConstraint)
+                    .build();
+
+
+            /* scorePickup1 PathChain --> moves to the scoring position  */
+
+            scorePickup1 = follower.pathBuilder()
+                    .addPath(new BezierLine(lineupMidPose, scoreMidPose))
                     .setLinearHeadingInterpolation(lineupMidPose.getHeading(), scoreMidPose.getHeading())
+                    .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
+                    .setTranslationalConstraint(scoreTranslationalConstraint)
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -133,9 +151,9 @@ public class IndexingAuto extends OpMode {
 
             grabPickup2 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scoreMidPose, lineupClosePose))
-                    .setLinearHeadingInterpolation(scoreMidPose.getHeading(), lineupClosePose.getHeading())
-                    .addPath(new BezierLine(lineupClosePose, gobbleClosePose))
+                    .addPath(new BezierLine(scoreMidPose, lineupFarPose))
+                    .setLinearHeadingInterpolation(scoreMidPose.getHeading(), lineupFarPose.getHeading())
+                    .addPath(new BezierLine(lineupFarPose, gobbleFarPose))
                     .setConstantHeadingInterpolation(lineupClosePose.getHeading())
                     .build();
 
