@@ -467,22 +467,29 @@ loopTimer.resetTimer();
         intake.setPower(0);
     }
     public void checkOverflow(){
-//        if(distanceSensors.getCount()>1){
-//            ballKickers.kickRight();
-//            ballKickers.update();
-//            while(ballKickers.getRightPos()<UpRightPos){
-//                follower.update();
-//                flywheel.update(launchVel);
-//            }
-//            ballKickers.retractRight();
-//            ballKickers.update();
-//        }
+        int count = distanceSensors.getCount();
+        if(colorSensors.getColorLeft()>0){
+            count++;
+        }
+        if(colorSensors.getColorRight()>0){
+            count++;
+        }
+        if(count>3){
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+                follower.update();
+                flywheel.update(launchVel);
+            }
+            ballKickers.retractRight();
+            ballKickers.update();
+        }
     }
     public void eject(){
         if(eject){
             ballKickers.kickBoth();
             ballKickers.update();
-            while(ballKickers.getRightPos()<UpRightPos){
+            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
                 follower.update();
                 flywheel.update(launchVel);
             }
@@ -491,9 +498,35 @@ loopTimer.resetTimer();
             eject=false;
         }
     }
+    public void launchArtifactsTwo() {
+        actionTimer.resetTimer();
+        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+            flywheel.update(launchVel);
+            follower.update();
+            telemetry.addData("launchVel", flywheel.getVelocity());
+            telemetry.update();
+        }
+        if(distanceSensors.getSide()==1){ //If efficient side is right
+            kickRight();
+            if(firstLaunch){
+                startIntake();
+                firstLaunch=false;
+            }
+            kickLeft();
+        } else{
+            kickLeft();
+            if(firstLaunch){
+                startIntake();
+                firstLaunch=false;
+            }
+            kickRight();
+        }
+
+        startNextPose=true;
+    }
     public void launchArtifactsE() {
         actionTimer.resetTimer();
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait){
+        while(((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -513,11 +546,11 @@ loopTimer.resetTimer();
             kickRight();
         }
         actionTimer.resetTimer();
-        while((ballKickers.getRightPos()>DownRightPos)||(ballKickers.getLeftPos()<DownLeftPos)){
+        while((ballKickers.getRightPos()>DownRightPos||ballKickers.getLeftPos()<DownLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
-        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -532,20 +565,20 @@ loopTimer.resetTimer();
             kickBoth();
         }
         actionTimer.resetTimer();
-        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
+        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
         startNextPose=true;
     }
     public void kickLeft(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
         ballKickers.kickLeft();
         ballKickers.update();
-        while(ballKickers.getLeftPos()>UpLeftPos){
+        while(ballKickers.getLeftPos()>UpLeftPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -553,13 +586,13 @@ loopTimer.resetTimer();
         ballKickers.update();
     }
     public void kickRight(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.update();
-        while(ballKickers.getRightPos()<UpRightPos){
+        while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -567,14 +600,16 @@ loopTimer.resetTimer();
         ballKickers.update();
     }
     public void kickBoth(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()<UpRightPos)||(ballKickers.getLeftPos()>UpLeftPos)){
+        while((ballKickers.getRightPos()<UpRightPos||ballKickers.getLeftPos()>UpLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+            telemetry.addData("kicker wait", "");
+            telemetry.update();
             follower.update();
             flywheel.update(launchVel);
         }

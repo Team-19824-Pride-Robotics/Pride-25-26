@@ -192,7 +192,7 @@ public class RoarAuto extends OpMode {
                     .addPath(new BezierLine(gobbleFarPoseR, scoreFarPoseR))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarPoseR.getHeading(), scoreFarPoseR.getHeading())
+                    .setLinearHeadingInterpolation(lineupFarPoseR.getHeading(), scoreFarPoseR.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -204,14 +204,14 @@ public class RoarAuto extends OpMode {
                     .addPath(new BezierLine(scoreFarPoseR, lineupMidPoseR))
                     .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupMidPoseR.getHeading())
                     .addPath(new BezierLine(lineupMidPoseR, gobbleMidPoseR))
-                    .setLinearHeadingInterpolation(lineupMidPoseR.getHeading(), gobbleMidPoseR.getHeading())
+                    .setConstantHeadingInterpolation(lineupMidPoseR.getHeading())
                     .build();
 
             scorePickup2 = follower.pathBuilder()
                     .addPath(new BezierLine(gobbleMidPoseR, scoreFarPoseR))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarthestPoseR2.getHeading(), scoreFarPoseR.getHeading())
+                    .setLinearHeadingInterpolation(gobbleMidPoseR.getHeading(), scoreFarPoseR.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -220,15 +220,15 @@ public class RoarAuto extends OpMode {
 
                     .addPath(new BezierLine(scoreFarPoseR, lineupFarthestPoseR))
                     .setLinearHeadingInterpolation(scoreFarPoseR.getHeading(), lineupFarthestPoseR.getHeading())
-                    .addPath(new BezierLine(lineupFarthestPoseR, gobbleFarthestPoseR3))
-                    .setLinearHeadingInterpolation(lineupFarthestPoseR.getHeading(), gobbleFarthestPoseR3.getHeading())
+                    .addPath(new BezierLine(lineupFarthestPoseR, gobbleFarthestPoseR2))
+                    .setLinearHeadingInterpolation(lineupFarthestPoseR.getHeading(), gobbleFarthestPoseR2.getHeading())
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarthestPoseR3, scoreFarPoseR))
+                    .addPath(new BezierLine(gobbleFarthestPoseR2, scoreFarPoseR))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarthestPoseR3.getHeading(), scoreFarPoseR.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarthestPoseR2.getHeading(), scoreFarPoseR.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -464,24 +464,29 @@ public class RoarAuto extends OpMode {
         intake.setPower(0);
     }
     public void checkOverflow(){
-        if(distanceSensors.getCount()>1){
-            if(colorSensors.getColorLeft()>0&&colorSensors.getColorRight()>0) {
-                ballKickers.kickRight();
-                ballKickers.update();
-                while (ballKickers.getRightPos() < UpRightPos) {
-                    follower.update();
-                    flywheel.update(launchVel);
-                }
-                ballKickers.retractRight();
-                ballKickers.update();
+        int count = distanceSensors.getCount();
+        if(colorSensors.getColorLeft()>0){
+            count++;
+        }
+        if(colorSensors.getColorRight()>0){
+            count++;
+        }
+        if(count>3){
+            ballKickers.kickRight();
+            ballKickers.update();
+            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+                follower.update();
+                flywheel.update(launchVel);
             }
+            ballKickers.retractRight();
+            ballKickers.update();
         }
     }
     public void eject(){
         if(eject){
             ballKickers.kickBoth();
             ballKickers.update();
-            while(ballKickers.getRightPos()<UpRightPos){
+            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
                 follower.update();
                 flywheel.update(launchVel);
             }
@@ -492,7 +497,7 @@ public class RoarAuto extends OpMode {
     }
     public void launchArtifactsTwo() {
         actionTimer.resetTimer();
-        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait){
+        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
             telemetry.addData("launchVel", flywheel.getVelocity());
@@ -518,7 +523,7 @@ public class RoarAuto extends OpMode {
     }
     public void launchArtifactsE() {
         actionTimer.resetTimer();
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait){
+        while(((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -538,11 +543,11 @@ public class RoarAuto extends OpMode {
             kickRight();
         }
         actionTimer.resetTimer();
-        while((ballKickers.getRightPos()>DownRightPos)||(ballKickers.getLeftPos()<DownLeftPos)){
+        while((ballKickers.getRightPos()>DownRightPos||ballKickers.getLeftPos()<DownLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
-        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)){
+        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -557,20 +562,20 @@ public class RoarAuto extends OpMode {
             kickBoth();
         }
         actionTimer.resetTimer();
-        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait){
+        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
         startNextPose=true;
     }
     public void kickLeft(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             flywheel.update(launchVel);
             follower.update();
         }
         ballKickers.kickLeft();
         ballKickers.update();
-        while(ballKickers.getLeftPos()>UpLeftPos){
+        while(ballKickers.getLeftPos()>UpLeftPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -578,13 +583,13 @@ public class RoarAuto extends OpMode {
         ballKickers.update();
     }
     public void kickRight(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.update();
-        while(ballKickers.getRightPos()<UpRightPos){
+        while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -592,14 +597,16 @@ public class RoarAuto extends OpMode {
         ballKickers.update();
     }
     public void kickBoth(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()<UpRightPos)||(ballKickers.getLeftPos()>UpLeftPos)){
+        while((ballKickers.getRightPos()<UpRightPos||ballKickers.getLeftPos()>UpLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+            telemetry.addData("kicker wait", "");
+            telemetry.update();
             follower.update();
             flywheel.update(launchVel);
         }
