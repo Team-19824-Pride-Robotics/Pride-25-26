@@ -112,11 +112,11 @@ public class Teleop extends LinearOpMode {
             lut.add(105, 1260);
             lut.add(110, 1280);
             lut.add(115, 1300);
-            lut.add(120, 1320);
-            lut.add(128, 1360);
-            lut.add(133, 1380);
-            lut.add(138, 1400);
-            lut.add(143, 1420);
+            lut.add(120, 1300);
+            lut.add(128, 1340);
+            lut.add(133, 1360);
+            lut.add(138, 1380);
+            lut.add(143, 1400);
 
             lut.add(999, 1500);
 
@@ -125,23 +125,25 @@ public class Teleop extends LinearOpMode {
 
 
 
-            lutC.add(0, 1300);
-            lutC.add(65, 1300);
-            lutC.add(70, 1300);
-            lutC.add(75, 1320);
-            lutC.add(80, 1340);
-            lutC.add(85, 1360);
-            lutC.add(90, 1380);
-            lutC.add(95, 1400);
-            lutC.add(100, 1420);
-            lutC.add(105, 1430);
-            lutC.add(110, 1320);
-            lutC.add(115, 1320);
-            lutC.add(120, 1340);
-            lutC.add(125, 1340);
-            lutC.add(130, 1360);
-            lutC.add(135, 1400);
-            lutC.add(140, 1440);
+            lutC.add(0, 1120);
+            lutC.add(55, 1140);
+            lutC.add(60, 1160);
+            lutC.add(65, 1180);
+            lutC.add(70, 1200);
+            lutC.add(75, 1220);
+            lutC.add(80, 1240);
+            lutC.add(85, 1260);
+            lutC.add(90, 1280);
+            lutC.add(95, 1300);
+            lutC.add(100, 1320);
+            lutC.add(105, 1340);
+            lutC.add(110, 1360);
+            lutC.add(115, 1380);
+            lutC.add(120, 1400);
+            lutC.add(125, 1420);
+            lutC.add(130, 1440);
+            lutC.add(135, 1460);
+            lutC.add(140, 1480);
 
             lutC.add(999, 1440);
 
@@ -208,7 +210,7 @@ public class Teleop extends LinearOpMode {
                 currentPose=follower.getPose();
                 flywheelVelocity=flywheel.getVelocity();
 
-                farSide= follower.getPose().getY() < 144;
+                farSide= follower.getPose().getY() < 60;
                 //heading lock and drive control
                 if(gamepad1.right_bumper || gamepad1.left_bumper){
                     headingLock=true;

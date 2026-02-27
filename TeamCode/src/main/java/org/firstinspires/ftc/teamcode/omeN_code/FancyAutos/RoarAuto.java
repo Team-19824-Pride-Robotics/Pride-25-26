@@ -80,14 +80,14 @@ public class RoarAuto extends OpMode {
     private static int closeVel=1080;
     private static int farVel=1300;
     private static int ejectVel=600;
-    private static int farTol=0;
+    private static int farTol=20;
     private static int closeTol=20;
     private int launchVel=farVel;
     private int launchTol;
     private static double UpRightPos=130;
     private static double UpLeftPos=236;
-    private static double DownRightPos=92;
-    private static double DownLeftPos=285;
+    private static double DownRightPos=85;
+    private static double DownLeftPos=280;
     private static double intakePower=-1;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
@@ -111,19 +111,19 @@ public class RoarAuto extends OpMode {
           turns on the intake and gobbles them up in a line  */
 
             grabPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(scoreFarPose, lineupFarthestPose))
-                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupFarthestPose.getHeading())
-                    .addPath(new BezierLine(lineupFarthestPose, gobbleFarthestPose))
-                    .setConstantHeadingInterpolation(lineupFarthestPose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupFarPose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupFarPose.getHeading())
+                    .addPath(new BezierLine(lineupFarPose, gobbleFarPose))
+                    .setConstantHeadingInterpolation(lineupFarPose.getHeading())
                     .build();
 
             /* scorePickup1 PathChain --> moves to the scoring position  */
 
             scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarthestPose, scoreFarPose))
+                    .addPath(new BezierLine(gobbleFarPose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(lineupFarthestPose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(lineupFarPose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -132,17 +132,17 @@ public class RoarAuto extends OpMode {
 
             grabPickup2 = follower.pathBuilder()
 
-                    .addPath(new BezierLine(scoreFarPose, lineupFarPose))
-                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupFarPose.getHeading())
-                    .addPath(new BezierLine(lineupFarPose, gobbleFarPose))
-                    .setConstantHeadingInterpolation(lineupFarPose.getHeading())
+                    .addPath(new BezierLine(scoreFarPose, lineupMidPose))
+                    .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupMidPose.getHeading())
+                    .addPath(new BezierLine(lineupMidPose, gobbleMidPose))
+                    .setConstantHeadingInterpolation(lineupMidPose.getHeading())
                     .build();
 
             scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarPose, scoreFarPose))
+                    .addPath(new BezierLine(gobbleMidPose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarPose.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleMidPose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -465,14 +465,16 @@ public class RoarAuto extends OpMode {
     }
     public void checkOverflow(){
         if(distanceSensors.getCount()>1){
-            ballKickers.kickRight();
-            ballKickers.update();
-            while(ballKickers.getRightPos()<UpRightPos){
-                follower.update();
-                flywheel.update(launchVel);
+            if(colorSensors.getColorLeft()>0&&colorSensors.getColorRight()>0) {
+                ballKickers.kickRight();
+                ballKickers.update();
+                while (ballKickers.getRightPos() < UpRightPos) {
+                    follower.update();
+                    flywheel.update(launchVel);
+                }
+                ballKickers.retractRight();
+                ballKickers.update();
             }
-            ballKickers.retractRight();
-            ballKickers.update();
         }
     }
     public void eject(){

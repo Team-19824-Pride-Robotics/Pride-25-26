@@ -86,8 +86,8 @@ public class CBAuto extends OpMode {
     private int launchTol;
     private static double UpRightPos=130;
     private static double UpLeftPos=236;
-    private static double DownRightPos=92;
-    private static double DownLeftPos=285;
+    private static double DownRightPos=85;
+    private static double DownLeftPos=280;
     private static double intakePower=-1;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
@@ -151,15 +151,15 @@ public class CBAuto extends OpMode {
 
                     .addPath(new BezierLine(scoreFarPose, lineupFarthestPose))
                     .setLinearHeadingInterpolation(scoreFarPose.getHeading(), lineupFarthestPose.getHeading())
-                    .addPath(new BezierLine(lineupFarthestPose, gobbleFarthestPose2))
-                    .setLinearHeadingInterpolation(lineupFarthestPose.getHeading(), gobbleFarthestPose2.getHeading())
+                    .addPath(new BezierLine(lineupFarthestPose, gobbleFarthestPose))
+                    .setLinearHeadingInterpolation(lineupFarthestPose.getHeading(), gobbleFarthestPose.getHeading())
                     .build();
 
             scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(gobbleFarthestPose2, scoreFarPose))
+                    .addPath(new BezierLine(gobbleFarthestPose, scoreFarPose))
                     .setHeadingConstraint(Math.toRadians(scoreHeadingTolerance))
                     .setTranslationalConstraint(scoreTranslationalConstraint)
-                    .setLinearHeadingInterpolation(gobbleFarthestPose2.getHeading(), scoreFarPose.getHeading())
+                    .setLinearHeadingInterpolation(gobbleFarthestPose.getHeading(), scoreFarPose.getHeading())
                     .setVelocityConstraint(scoreVelocityConstraint)
                     .build();
 
@@ -598,6 +598,8 @@ loopTimer.resetTimer();
         ballKickers.kickLeft();
         ballKickers.update();
         while((ballKickers.getRightPos()<UpRightPos)||(ballKickers.getLeftPos()>UpLeftPos)){
+            telemetry.addData("kicker wait", "");
+            telemetry.update();
             follower.update();
             flywheel.update(launchVel);
         }

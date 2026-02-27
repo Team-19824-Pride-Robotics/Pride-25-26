@@ -6,12 +6,12 @@ public class Poses {
     //Blue Poses
     public static Pose transferPose;
     public static final Pose startFarPose = new Pose(144-88, 9, Math.toRadians(90)); // Start Pose for far side
-    public static final Pose scoreFarPose = new Pose(144-88, 19, Math.toRadians(112)); // Scoring Pose for far side
+    public static final Pose scoreFarPose = new Pose(144-88, 19, Math.toRadians(110)); // Scoring Pose for far side
     public static final Pose lineupFarthestPose = new Pose(144-100, 15, Math.toRadians(200));
     public static final Pose gobbleFarthestPose = new Pose(144-131, 14, Math.toRadians(200)); // Farthest set
     public static final Pose gobbleFarthestPose2 = new Pose(144-131, 20, Math.toRadians(180));
-    public static final Pose lineupFarPose = new Pose(144-90, 42.5, Math.toRadians(180)); // Farthest set
-    public static final Pose gobbleFarPose = new Pose(144-130, 32.5, Math.toRadians(180)); // Farthest set
+    public static final Pose lineupFarPose = new Pose(144-90, 40, Math.toRadians(180)); // Farthest set
+    public static final Pose gobbleFarPose = new Pose(144-130, 35, Math.toRadians(180)); // Farthest set
     public static final Pose lineupMidPose = new Pose(144-90, 65, Math.toRadians(180)); // Middle set
     public static final Pose gobbleMidPose = new Pose(144-125, 57.5, Math.toRadians(180)); // Middle set
     public static final Pose gateOpenPose = new Pose(144-122.5, 68, Math.toRadians(270)); //Open da gate
