@@ -17,6 +17,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.omeN_code.subsystems.Agitator;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.ballKickers;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.colorSensors;
 import org.firstinspires.ftc.teamcode.omeN_code.subsystems.distanceSensors;
@@ -46,6 +47,7 @@ public class Teleop extends LinearOpMode {
     private limelight limelight;
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
+    private Agitator agitator;
     //intake logic
     private static double intakePowerDampening = 0.8;
     private boolean manualIntaking = false;
@@ -90,6 +92,7 @@ public class Teleop extends LinearOpMode {
     InterpLUT lut = new InterpLUT();
     InterpLUT lutC = new InterpLUT();
     Timer loopTime;
+    Timer opModeTime;
 
 //Auto aim
 
@@ -162,6 +165,7 @@ public class Teleop extends LinearOpMode {
             ballKickers = new ballKickers(hardwareMap);
             colorSensors = new colorSensors(hardwareMap);
             distanceSensors = new distanceSensors(hardwareMap);
+            agitator = new Agitator(hardwareMap);
 
             //init mechs
             limelight.init();
@@ -198,6 +202,8 @@ public class Teleop extends LinearOpMode {
             if (isStopRequested()) return;
             follower.startTeleopDrive();
             loopTime = new Timer();
+            opModeTime = new Timer();
+            opModeTime.resetTimer();
             while (opModeIsActive()) {
                 loopTime.resetTimer();
                 for (LynxModule hub : allHubs) {
@@ -210,11 +216,24 @@ public class Teleop extends LinearOpMode {
                 currentPose=follower.getPose();
                 flywheelVelocity=flywheel.getVelocity();
 
-                farSide= follower.getPose().getY() < 60;
+                farSide= follower.getPose().getY() < 0;
+
+                if(opModeTime.getElapsedTimeSeconds()>100){
+                    if(redAlliance) {
+                        if (follower.getPose().getY() < 72 && follower.getPose().getX() > 72) {
+                            gamepad1.rumble(100);
+                        }
+                    }else{
+                        if (follower.getPose().getY() < 72 && follower.getPose().getX() < 72) {
+                            gamepad1.rumble(100);
+                        }
+                    }
+                }
                 //heading lock and drive control
                 if(gamepad1.right_bumper || gamepad1.left_bumper){
                     headingLock=true;
                 }
+
                 if(headingLock && !farZoneAim) {
                     PathChain pathChain;
                     if(lLActive) {
@@ -230,11 +249,8 @@ public class Teleop extends LinearOpMode {
                 //Relocalize heading in case of error
                 if (gamepad1.dpad_right) {
                     Pose currentPose = follower.getPose();
-                    if(redAlliance) {
-                        follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(0)));
-                    }else{
-                        follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(180)));
-                    }
+                    firstReloc=true;
+                    follower.setPose(new Pose(currentPose.getX(), currentPose.getY(), Math.toRadians(90)));
                 }
 
                 if (gamepad1.a) { //Go to far zone launch
@@ -315,14 +331,18 @@ public class Teleop extends LinearOpMode {
                 manualIntaking = gamepad1.right_trigger > 0.1 || gamepad1.left_trigger > 0.1;
                 if(manualIntaking) {
                     intake.setPower((gamepad1.right_trigger - gamepad1.left_trigger) * intakePowerDampening);
+                    agitator.spinLeft();
                 }
                 else{
                     intake.setPower(setIntakePow);
+                    agitator.spinLeft();
                 }
                 if(launchQueue>0 && launchQueue<3){
+                    agitator.spinLeft();
                     setIntakePow=-1;
                 } else{
                     setIntakePow=0;
+                    agitator.stop();
                 }
 
                 //Emergency flywheel control
@@ -356,6 +376,7 @@ public class Teleop extends LinearOpMode {
                     if (gamepad1.b) {
                         launchLeft = false;
                         launchRight = false;
+                        ballKickers.retractBoth();
                     }
                     launchE = false;
                 } else {
@@ -527,6 +548,7 @@ public class Teleop extends LinearOpMode {
                 }
                 ballKickers.update();
                 intake.update();
+                agitator.update();
                 telemetry.addData("Loop Time:", loopTime.getElapsedTime());
                 telemetry.addData("X", follower.getPose().getX());
                 telemetry.addData("Y", follower.getPose().getY());

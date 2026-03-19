@@ -72,19 +72,19 @@ public class IndexingAuto extends OpMode {
     private colorSensors colorSensors;
     private distanceSensors distanceSensors;
 
-    private static int closeVel=1080;
+    private static int closeVel=1060;
     private static int farVel=1400;
     private static int ejectVel=600;
     private static int farTol=0;
-    private static int closeTol=20;
+    private static int closeTol=0;
     private static int motif=-1;
     private boolean waitForDaRoll=false;
     private int launchVel=farVel;
     private int launchTol;
     private static double UpRightPos=130;
     private static double UpLeftPos=236;
-    private static double DownRightPos=85;
-    private static double DownLeftPos=280;
+    private static double DownRightPos=90;
+    private static double DownLeftPos=270;
     private static double intakePower=-0.8;
     private static double firstKickWait=0.5;
     private static double thirdKickWait=0.5;
@@ -367,7 +367,6 @@ public class IndexingAuto extends OpMode {
 //launch 2nd set, go to pickup 3rd set
             case 4:
                 if(!follower.isBusy()) {
-                    reverseIntake();
                     if(motif!=2) {
                         launchArtifactsI();
                     } else{
@@ -404,7 +403,6 @@ public class IndexingAuto extends OpMode {
 //launch 3rd set, go to pickup 4th set
             case 6:
                 if(!follower.isBusy()) {
-                    reverseIntake();
                     if(motif!=1) {
                         launchArtifactsI();
                     }else{
@@ -439,7 +437,6 @@ public class IndexingAuto extends OpMode {
             case 8:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-                    reverseIntake();
                     launchArtifactsE();
                     startIntake();
                     stopIntake();
@@ -576,7 +573,7 @@ loopTimer.resetTimer();
         if(count>3){
             ballKickers.kickRight();
             ballKickers.update();
-            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29){
                 follower.update();
                 flywheel.update(launchVel);
             }
@@ -588,7 +585,7 @@ loopTimer.resetTimer();
         if(eject){
             ballKickers.kickBoth();
             ballKickers.update();
-            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+            while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29){
                 follower.update();
                 flywheel.update(launchVel);
             }
@@ -599,7 +596,7 @@ loopTimer.resetTimer();
     }
     public void launchArtifactsTwo() {
         actionTimer.resetTimer();
-        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((Math.abs(flywheel.getVelocity()-launchVel)!=0)&&actionTimer.getElapsedTimeSeconds()<firstKickWait&&opmodeTimer.getElapsedTimeSeconds()<29){
             flywheel.update(launchVel);
             follower.update();
             telemetry.addData("launchVel", flywheel.getVelocity());
@@ -625,7 +622,7 @@ loopTimer.resetTimer();
     }
     public void launchArtifactsE() {
         actionTimer.resetTimer();
-        while(((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while(((Math.abs(flywheel.getVelocity()-launchVel)>launchTol)||actionTimer.getElapsedTimeSeconds()<firstKickWait)&&opmodeTimer.getElapsedTimeSeconds()<29){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -634,6 +631,8 @@ loopTimer.resetTimer();
             if(firstLaunch){
                 startIntake();
                 firstLaunch=false;
+            }else{
+                reverseIntake();
             }
             kickLeft();
         } else{
@@ -641,15 +640,17 @@ loopTimer.resetTimer();
             if(firstLaunch){
                 startIntake();
                 firstLaunch=false;
+            }else{
+                reverseIntake();
             }
             kickRight();
         }
         actionTimer.resetTimer();
-        while((ballKickers.getRightPos()>DownRightPos||ballKickers.getLeftPos()<DownLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((ballKickers.getRightPos()>DownRightPos||ballKickers.getLeftPos()<DownLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29){
             flywheel.update(launchVel);
             follower.update();
         }
-        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((colorSensors.getColorLeft()<1&&colorSensors.getColorRight()<1)&&(actionTimer.getElapsedTimeSeconds()<colorSensorTimeout)&&opmodeTimer.getElapsedTimeSeconds()<29){
             flywheel.update(launchVel);
             follower.update();
         }
@@ -664,20 +665,20 @@ loopTimer.resetTimer();
             kickBoth();
         }
         actionTimer.resetTimer();
-        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while(actionTimer.getElapsedTimeSeconds()<thirdKickWait&&opmodeTimer.getElapsedTimeSeconds()<29){
             flywheel.update(launchVel);
             follower.update();
         }
         startNextPose=true;
     }
     public void kickLeft(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29){
             flywheel.update(launchVel);
             follower.update();
         }
         ballKickers.kickLeft();
         ballKickers.update();
-        while(ballKickers.getLeftPos()>UpLeftPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while(ballKickers.getLeftPos()>UpLeftPos&&opmodeTimer.getElapsedTimeSeconds()<29){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -685,13 +686,13 @@ loopTimer.resetTimer();
         ballKickers.update();
     }
     public void kickRight(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.update();
-        while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while(ballKickers.getRightPos()<UpRightPos&&opmodeTimer.getElapsedTimeSeconds()<29){
             follower.update();
             flywheel.update(launchVel);
         }
@@ -699,14 +700,14 @@ loopTimer.resetTimer();
         ballKickers.update();
     }
     public void kickBoth(){
-        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((Math.abs(flywheel.getVelocity()-launchVel)>launchTol||ballKickers.getLeftPos()<DownLeftPos||ballKickers.getRightPos()>DownRightPos)&&opmodeTimer.getElapsedTimeSeconds()<29){
             follower.update();
             flywheel.update(launchVel);
         }
         ballKickers.kickRight();
         ballKickers.kickLeft();
         ballKickers.update();
-        while((ballKickers.getRightPos()<UpRightPos||ballKickers.getLeftPos()>UpLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29.5){
+        while((ballKickers.getRightPos()<UpRightPos||ballKickers.getLeftPos()>UpLeftPos)&&opmodeTimer.getElapsedTimeSeconds()<29){
             telemetry.addData("kicker wait", "");
             telemetry.update();
             follower.update();
@@ -754,6 +755,8 @@ loopTimer.resetTimer();
             }else{
                 chooseI(1, leftColor, rightColor);
             }
+            reverseIntake();
+
             actionTimer.resetTimer();
             while((ballKickers.getRightPos()>DownRightPos)||(ballKickers.getLeftPos()<DownLeftPos)){
                 telemetry.addData("servo wait", "");

@@ -12,14 +12,16 @@ public class Poses {
     public static final Pose gobbleFarthestPose2 = new Pose(144-131, 20, Math.toRadians(180));
     public static final Pose lineupFarPose = new Pose(144-90, 40, Math.toRadians(180)); // Farthest set
     public static final Pose gobbleFarPose = new Pose(144-130, 35, Math.toRadians(180)); // Farthest set
+    public static final Pose lineupFarishPose = new Pose(144-95, 61.5, Math.toRadians(180)); // Farthest set
+    public static final Pose gobbleFarishPose = new Pose(144-130, 54, Math.toRadians(180));
     public static final Pose lineupMidPose = new Pose(144-90, 65, Math.toRadians(180)); // Middle set
     public static final Pose gobbleMidPose = new Pose(144-125, 57.5, Math.toRadians(180)); // Middle set
-    public static final Pose gateOpenPose = new Pose(144-122.5, 68, Math.toRadians(270)); //Open da gate
+    public static final Pose gateOpenPose = new Pose(144-124, 68, Math.toRadians(270)); //Open da gate
     public static final Pose lineupClosePose = new Pose(144-90, 77, Math.toRadians(180)); // Close set
     public static final Pose gobbleClosePose = new Pose(144-120, 83, Math.toRadians(180)); // Close set
-    public static final Pose startClosePose = new Pose((144-88), 135, Math.toRadians(90)); //Close start Pose
-    public static final Pose scoreClosePose = new Pose((144-80), 77, Math.toRadians(145)); //Close score pose
-    public static final Pose scoreMidPose = new Pose((144-80), 80, Math.toRadians(135));
+    public static final Pose startClosePose = new Pose((144-110), 130, Math.toRadians(90)); //Close start Pose
+    public static final Pose scoreClosePose = new Pose((144-90), 80, Math.toRadians(127.5)); //Close score pose
+    public static final Pose scoreMidPose = new Pose((144-90), 80, Math.toRadians(127.5));
 
     //Red Poses
     public static final Pose startFarPoseR = new Pose(88, 9, Math.toRadians(180-90)); // Start Pose for far side
@@ -28,14 +30,16 @@ public class Poses {
     public static final Pose gobbleFarthestPoseR = new Pose(131, 15, Math.toRadians(180-200)); // Farthest set
     public static final Pose gobbleFarthestPoseR2 = new Pose(131, 20, Math.toRadians(180-180));
     public static final Pose gobbleFarthestPoseR3 = new Pose(131, 15, Math.toRadians(180-180));
+    public static final Pose lineupFarishPoseR = new Pose(95, 66.5, Math.toRadians(180-180)); // Farthest set
+    public static final Pose gobbleFarishPoseR = new Pose(130, 59, Math.toRadians(180-180));
     public static final Pose lineupFarPoseR = new Pose(95, 42.5, Math.toRadians(180-180)); // Farthest set
-    public static final Pose gobbleFarPoseR = new Pose(130, 32.5, Math.toRadians(180-180)); // Farthest set
+    public static final Pose gobbleFarPoseR = new Pose(130, 35, Math.toRadians(180-180)); // Farthest set
     public static final Pose lineupMidPoseR = new Pose(95, 65, Math.toRadians(180-180)); // Middle set
     public static final Pose gobbleMidPoseR = new Pose(125, 57.5, Math.toRadians(180-180)); // Middle set
     public static final Pose gateOpenPoseR = new Pose(130, 70, Math.toRadians(180-270)); //Open da gate
     public static final Pose lineupClosePoseR = new Pose(90, 83, Math.toRadians(180-180)); // Close set
     public static final Pose gobbleClosePoseR = new Pose(125, 86, Math.toRadians(180-180)); // Close set
-    public static final Pose startClosePoseR = new Pose((88), 135, Math.toRadians(180-90)); //Close start Pose
-    public static final Pose scoreClosePoseR = new Pose((80), 87, Math.toRadians(180-150)); //Close score pose
-    public static final Pose scoreMidPoseR = new Pose((80), 80, Math.toRadians(180-132.5));
+    public static final Pose startClosePoseR = new Pose(110, 130, Math.toRadians(180-90)); //Close start Pose
+    public static final Pose scoreClosePoseR = new Pose(90, 80, Math.toRadians(180-127.5)); //Close score pose
+    public static final Pose scoreMidPoseR = new Pose((90), 80, Math.toRadians(180-127.5));
 }
