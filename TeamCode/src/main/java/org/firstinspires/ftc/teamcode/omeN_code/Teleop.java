@@ -40,6 +40,7 @@ public class Teleop extends LinearOpMode {
     private double goalAng;
     private boolean lLActive=false;
     private boolean firstReloc=true;
+    private boolean headingError=false;
     //mech subsystem declarations
     private intake intake;
     private flywheel flywheel;
@@ -54,9 +55,9 @@ public class Teleop extends LinearOpMode {
     private int setIntakePow = 0;
     //launch logic
     private static double UpRightPos=130;
-    private static double UpLeftPos=236;
-    private static double DownRightPos=92;
-    private static double DownLeftPos=285;
+    private static double UpLeftPos=255;
+    private static double DownRightPos=115;
+    private static double DownLeftPos=230;
     private boolean farSide;
     private boolean secondDoubleLaunch=false;
     private boolean launchLeft=false;
@@ -243,6 +244,11 @@ public class Teleop extends LinearOpMode {
                             goalAng = Math.atan2(134 - follower.getPose().getY(), 10-follower.getPose().getX());
                         }
                         follower.turnTo(goalAng);
+                        if(Math.abs(follower.getHeading()-goalAng)<Math.toRadians(5)){
+                            if(Math.abs(follower.getHeading()-limelight.getAngle())>Math.toRadians(5)){
+                                headingError=true;
+                            }
+                        }
                     }
                 }
 
@@ -433,10 +439,10 @@ public class Teleop extends LinearOpMode {
                         //Launch left and right don't rly make sense, i just didn't wanna make more vars
                         //left is just first set and right is second
                         if(launchLeft){
-                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && ballKickers.rightIsDown() && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
                                 ballKickers.kickBoth();
                             }
-                            if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos){
+                            if(ballKickers.leftIsUp() && ballKickers.rightIsUp()){
                                 ballKickers.retractBoth();
                                 secondDoubleLaunch=true;
                                 launchRight=true;
@@ -444,11 +450,11 @@ public class Teleop extends LinearOpMode {
                             }
                         }
                         if(launchRight){
-                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && ballKickers.rightIsDown() && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2 && (colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0)) {
                                 ballKickers.kickBoth();
                                 secondDoubleLaunch=false;
                             }
-                            if(leftKickerPos < UpLeftPos && rightKickerPos > UpRightPos && !secondDoubleLaunch){
+                            if(ballKickers.leftIsUp() && ballKickers.rightIsUp() && !secondDoubleLaunch){
                                 ballKickers.retractBoth();
                                 launchE=false;
                                 launchRight=false;
@@ -458,9 +464,9 @@ public class Teleop extends LinearOpMode {
                     } else {
                         //Launch logic
                         if (launchRight) {
-                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && rightKickerPos < DownRightPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && ballKickers.rightIsDown() && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
                                 if (launchQueue == 1) {
-                                    if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+                                    if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (ballKickers.rightIsDown() && ballKickers.leftIsDown())) {
                                         ballKickers.kickRight();
                                         ballKickers.kickLeft();
                                         launchLeft = true;
@@ -472,9 +478,9 @@ public class Teleop extends LinearOpMode {
                         }
 
                         if (launchLeft) {
-                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && leftKickerPos < DownLeftPos && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
+                            if (Math.abs(flywheel.getVelocity() - launchVel) < 20 && ballKickers.leftIsDown() && Math.toDegrees(Math.abs(goalAng - follower.getHeading())) < 2) {
                                 if (launchQueue == 1) {
-                                    if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (rightKickerPos < DownRightPos && leftKickerPos < DownLeftPos)) {
+                                    if ((colorSensors.getColorLeft() > 0 || colorSensors.getColorRight() > 0) && (ballKickers.rightIsDown() && ballKickers.leftIsDown())) {
                                         ballKickers.kickRight();
                                         ballKickers.kickLeft();
                                         launchRight = true;
@@ -486,7 +492,7 @@ public class Teleop extends LinearOpMode {
                         }
 
                         //Retraction logic
-                        if (launchLeft && leftKickerPos < UpLeftPos) {
+                        if (launchLeft && ballKickers.leftIsUp()) {
                             ballKickers.retractLeft();
                             launchLeft = false;
                             if (launchQueue > 1) {
@@ -499,7 +505,7 @@ public class Teleop extends LinearOpMode {
                                 headingLock = false;
                             }
                         }
-                        if (launchRight && rightKickerPos > UpRightPos) {
+                        if (launchRight && ballKickers.rightIsUp()) {
                             ballKickers.retractRight();
                             launchRight = false;
                             if (launchQueue > 1) {
@@ -516,27 +522,27 @@ public class Teleop extends LinearOpMode {
                 } else {
                     if (launchRight) {
                         ballKickers.retractLeft();
-                        if (Math.abs(flywheel.getVelocity()-launchVel)<20  && rightKickerPos < DownRightPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<2) {
+                        if (Math.abs(flywheel.getVelocity()-launchVel)<20  && ballKickers.rightIsDown() && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<2) {
                             ballKickers.kickRight();
                         }
                     }
-                    if (launchRight && rightKickerPos > UpRightPos) {
+                    if (launchRight && ballKickers.rightIsUp()) {
                         ballKickers.retractRight();
                         launchRight = false;
                     }
 
                     if (launchLeft) {
                         ballKickers.retractRight();
-                        if (Math.abs(flywheel.getVelocity()-launchVel)<20  && leftKickerPos < DownLeftPos  && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<2) {
+                        if (Math.abs(flywheel.getVelocity()-launchVel)<20  && ballKickers.leftIsDown() && Math.toDegrees(Math.abs(goalAng-follower.getHeading()))<2) {
                             ballKickers.kickLeft();
                         }
                     }
-                    if (launchLeft && leftKickerPos < UpLeftPos) {
+                    if (launchLeft && ballKickers.leftIsUp()) {
                         ballKickers.retractLeft();
                         launchLeft = false;
                     }
                 }
-                if((gamepad1.right_bumper||gamepad1.left_bumper)&&leftKickerPos>DownLeftPos&&rightKickerPos<DownRightPos){
+                if((gamepad1.right_bumper||gamepad1.left_bumper)&& ballKickers.leftIsDown() &&ballKickers.rightIsDown()){
                     ballKickers.retractBoth();
                 }
 

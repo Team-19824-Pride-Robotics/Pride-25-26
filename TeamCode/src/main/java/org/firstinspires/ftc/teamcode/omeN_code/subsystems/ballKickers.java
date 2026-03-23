@@ -10,12 +10,16 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 public class ballKickers {
 
     // Dashboard-tunable positions
-    public static double downLeftPosition = 0.8;
+    public static double downLeftPosition = 0.65;
     public static double blockLeftPos=0.4; //67 🤣🤣🤣
-    public static double upLeftPosition = 0.65;
-    public static double downRightPosition = 0.77;
+    public static double upLeftPosition = 0.8;
+    public static double downRightPosition = 0.61;
     public static double blockRightPos=0.375;
-    public static double upRightPosition = 0.61;
+    public static double upRightPosition = 0.75;
+    private static double UpRightPos=80;
+    private static double UpLeftPos=255;
+    private static double DownRightPos=115;
+    private static double DownLeftPos=260;
     public static double currentLeftPos;
     public static double currentRightPos;
 
@@ -72,6 +76,18 @@ public class ballKickers {
     }
     public double getLeftDesiredPos(){
         return leftKicker.getPosition();
+    }
+    public boolean leftIsDown(){
+        return getLeftPos()>DownLeftPos;
+    }
+    public boolean leftIsUp(){
+        return getLeftPos()<UpLeftPos;
+    }
+    public boolean rightIsDown(){
+        return getLeftPos()<DownRightPos;
+    }
+    public boolean rightIsUp(){
+        return getLeftPos()>UpRightPos;
     }
     public void update(){
         if(Math.abs(desiredLeftPosition-currentLeftPos)>0) {
