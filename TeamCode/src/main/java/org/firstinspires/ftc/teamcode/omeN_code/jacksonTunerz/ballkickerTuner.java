@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.omeN_code;
+package org.firstinspires.ftc.teamcode.omeN_code.jacksonTunerz;
 
 import static org.firstinspires.ftc.teamcode.omeN_code.FancyAutos.AllianceSelection.allianceSelected;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.pathConstraints;
@@ -52,6 +52,7 @@ public class ballkickerTuner extends LinearOpMode {
 
         if (isStopRequested()) return;
         while(opModeIsActive()) {
+
             if (gamepad1.a) {
                 ballKickers.kickBoth();
             }
@@ -59,12 +60,20 @@ public class ballkickerTuner extends LinearOpMode {
                 ballKickers.retractBoth();
             }
             ballKickers.update();
+
+
             telemetry.addData("Left pos: ", ballKickers.getLeftPos());
             telemetry.addData("Right pos: ", ballKickers.getRightPos());
+
+            telemetry.addData("Left Up?: ", ballKickers.leftIsUp());
+            telemetry.addData("Right Up?: ", ballKickers.rightIsUp());
+
+            telemetry.addData("Left Down?: ", ballKickers.leftIsDown());
+            telemetry.addData("Right Down?: ", ballKickers.rightIsDown());
+
             telemetry.update();
         }
     }
-
 }
 
 //green bull party at 4470 lennox blvd. november 3rd 2030

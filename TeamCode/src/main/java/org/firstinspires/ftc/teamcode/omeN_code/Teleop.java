@@ -86,6 +86,8 @@ public class Teleop extends LinearOpMode {
     private double leftKickerPos;
     private double rightKickerPos;
     private double flywheelVelocity;
+    private int side;
+    private int count;
 
 
 
@@ -212,10 +214,10 @@ public class Teleop extends LinearOpMode {
                 }
                 follower.update();
                 //Hardware reads
-                leftKickerPos= ballKickers.getLeftPos();
-                rightKickerPos= ballKickers.getRightPos();
                 currentPose=follower.getPose();
                 flywheelVelocity=flywheel.getVelocity();
+                count=distanceSensors.getCount();
+                side=distanceSensors.getSide();
 
                 farSide= follower.getPose().getY() < 0;
 
@@ -421,7 +423,7 @@ public class Teleop extends LinearOpMode {
                     if (launchE && !launchLeft && !launchRight) {
                         if (farSide) {
                             if (launchQueue > 1) {
-                                if (distanceSensors.getSide() == 1) {
+                                if (side == 1) {
                                     launchRight = true;
                                 } else {
                                     launchLeft = true;
@@ -553,7 +555,7 @@ public class Teleop extends LinearOpMode {
                     flywheel.setPower(1);
                 }
                 ballKickers.update();
-                intake.update();
+                intake.update(count, side);
                 agitator.update();
                 telemetry.addData("Loop Time:", loopTime.getElapsedTime());
                 telemetry.addData("X", follower.getPose().getX());
